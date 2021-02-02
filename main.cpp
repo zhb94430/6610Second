@@ -19,6 +19,7 @@
 #include <fstream>
 #include <string>
 #include <math.h>
+#include <chrono>
 
 GLFWwindow* window;
 
@@ -74,9 +75,20 @@ int main(int argc, char* argv[])
 {
     GLFWInit();
 
+    auto begin = std::chrono::steady_clock::now();
+
+    glClearColor(0.0, 0.0, 0.4, 1.0);
+
     while (!glfwWindowShouldClose(window))
     {
-	    glClearColor(0.0, 0.0, 0.4, 1.0);
+	    // glClearColor(0.0, 0.0, 0.4, 1.0);
+
+    	auto current = std::chrono::steady_clock::now();
+
+    	auto timeDiff = std::chrono::duration_cast<std::chrono::seconds>(current - begin).count();
+
+    	glClearColor(sin(timeDiff), cos(timeDiff), sin(timeDiff), 1.0);
+    	glClear(GL_COLOR_BUFFER_BIT);
 
 	    glfwSwapBuffers(window);
 	    glfwPollEvents();
