@@ -28,15 +28,22 @@
 
 #include <cyMatrix.h>
 
+#include "GLStates.h"
 #include "glfwHelpers.cpp"
-#include "Project2.cpp"
-
+#include "Camera.h"
+#include "GLMesh.h"
+#include "Light.h"
+#include "Blinn.h"
 
 
 // Global Variables
 extern GLFWwindow* window;
 extern Camera cam;
-extern GLRef glRef;
+extern GLStates glStates;
+
+// Scene Variables
+extern Light l;
+extern Blinn b;
 
 std::string modelPath = "./teapot.obj";
 
@@ -51,8 +58,16 @@ int main(int argc, char* argv[])
         modelPath = argv[1];
     }
 
-    loadProgram(glRef);
-	loadModel(glRef, modelPath);    
+    loadProgram(&glStates);
+	
+
+	// Setup scene
+	GLMesh currentMesh = GLMesh(modelPath, &glStates, cyMatrix4f::Identity());
+	currentMesh.Center();
+
+	glUniform3fv(glStates.cameraPos, 1, (const GLfloat*) &cam.pos);
+	l.sendTo(&glStates);
+	b.sendTo(&glStates);
 
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.0, 0.0, 0.0, 1.0);
@@ -68,26 +83,20 @@ int main(int argc, char* argv[])
 
     	// printf("Cam Pos %f %f %f\n", cam.pos[0], cam.pos[1], cam.pos[2]);
 
+    	// Update light
+    	l.sendTo(&glStates);
+
     	// MVP Matrix
-    	auto Model = cyMatrix4f::Translation(-glRef.modelCenter); // Center object
     	auto Projection = cyMatrix4f::Perspective(cam.fov, 1.0, 1, 100);
     	auto View = cyMatrix4f::View(cam.pos, cam.lookAt, cam.up);
-    	auto MVP = Projection * View * Model;
+    	auto MVP = Projection * View * currentMesh.modelMatrix;
 
-    	//Set Attributes and Draw buffer
-    	GLuint mvp_location = glGetUniformLocation(glRef.program, "MVP");
-    	GLuint vpos_location = glGetAttribLocation(glRef.program, "vertexPos");
-   	
- 		glBindBuffer(GL_ARRAY_BUFFER, glRef.VBO);
- 		glBindVertexArray(glRef.VAO);
-    
-    	glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*) &MVP);
- 		
-    	glEnableVertexAttribArray(vpos_location);
- 		glVertexAttribPointer(vpos_location, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
+    	//Set Attributes
+    	glUniformMatrix4fv(glStates.MVP, 1, GL_FALSE, (const GLfloat*) &MVP);
+    	glUniformMatrix4fv(glStates.M, 1, GL_FALSE, (const GLfloat*) &currentMesh.modelMatrix);
 
-    	glDrawArrays(GL_POINTS, 0, glRef.meshArraySize);
-    	
+    	currentMesh.Draw();
+
 	    glfwSwapBuffers(window);
 	    glfwPollEvents();
 	}

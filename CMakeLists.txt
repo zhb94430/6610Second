@@ -21,12 +21,12 @@ add_custom_command(
         COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_SOURCE_DIR}/FragShader.glsl
                 ${CMAKE_CURRENT_BINARY_DIR}/FragShader.glsl
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/FragShader.glsl
         COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_SOURCE_DIR}/VertexShader.glsl
                 ${CMAKE_CURRENT_BINARY_DIR}/VertexShader.glsl
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/VertexShader.glsl
         COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_SOURCE_DIR}/teapot.obj
                 ${CMAKE_CURRENT_BINARY_DIR}/teapot.obj
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/FragShader.glsl
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/VertexShader.glsl
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/teapot.obj)

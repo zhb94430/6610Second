@@ -19,21 +19,27 @@
 #include <OpenGL/gl3.h>
 #include <GLFW/glfw3.h>
 
-#include "Project2.cpp"
+#include "Camera.h"
+#include "Light.h"
+#include "GLStates.h"
 
+extern GLStates glStates;
 extern Camera cam;
+extern Light l;
 
 GLFWwindow* window;
 
 bool MR_PRESSED = false;
 bool ML_PRESSED = false;
+bool CTL_PRESSED = false;
 
 double xposPrev = 0.0;
 double yposPrev = 0.0;
 
 // Sensitivities for camera control
 double distSensitivity = 0.001;
-double angleSensitivity = 0.001;
+double camAngleSensitivity = 0.001;
+double lightAngleSensitivity = 0.001;
 
 static void error_callback(int error, const char* description)
 {
@@ -52,11 +58,33 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
                 break;
 
             case GLFW_KEY_F6:
-                loadProgram(glRef);
+                loadProgram(&glStates);
                 printf("Shader Recompiled\n");
+                break;
+
+            case GLFW_KEY_LEFT_CONTROL:
+                CTL_PRESSED = true;
+                break;
+
+            case GLFW_KEY_RIGHT_CONTROL:
+                CTL_PRESSED = true;
                 break;
 		}
 	}
+
+    if (action == GLFW_RELEASE)
+    {
+        switch (key)
+        {
+            case GLFW_KEY_LEFT_CONTROL:
+                CTL_PRESSED = false;
+                break;
+
+            case GLFW_KEY_RIGHT_CONTROL:
+                CTL_PRESSED = false;
+                break;
+        }
+    }
 }
 
 static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
@@ -75,11 +103,22 @@ static void cursor_position_callback(GLFWwindow* window, double xpos, double ypo
     // Calculate new camera pos based on x_delta & y_delta
     if (ML_PRESSED)
     {
-        // Rotate in X and Y
-        auto xRot = cyMatrix3f::RotationX(y_delta * angleSensitivity);
-        auto yRot = cyMatrix3f::RotationY(x_delta * angleSensitivity);
+        if (CTL_PRESSED)
+        {
+            // Rotate in X and Y
+            auto xRot = cyMatrix3f::RotationX(y_delta * lightAngleSensitivity);
+            auto yRot = cyMatrix3f::RotationY(x_delta * lightAngleSensitivity);
 
-        cam.pos = xRot * yRot * cam.pos;
+            l.pos = xRot * yRot * l.pos; 
+        }
+        else
+        {
+            // Rotate in X and Y
+            auto xRot = cyMatrix3f::RotationX(y_delta * camAngleSensitivity);
+            auto yRot = cyMatrix3f::RotationY(x_delta * camAngleSensitivity);
+
+            cam.pos = xRot * yRot * cam.pos; 
+        }
     }
 
     xposPrev = xpos;
