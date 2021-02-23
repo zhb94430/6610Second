@@ -1,3 +1,6 @@
 [submodule "ExternalLibraries/cyCodeBase"]
 	path = ExternalLibraries/cyCodeBase
 	url = https://github.com/cemyuksel/cyCodeBase
+[submodule "ExternalLibraries/lodepng"]
+	path = ExternalLibraries/lodepng
+	url = https://github.com/lvandeve/lodepng
