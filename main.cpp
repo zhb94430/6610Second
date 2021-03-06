@@ -17,6 +17,7 @@
 #define GLFW_INCLUDE_GLCOREARB
 
 #include <OpenGL/gl3.h>
+#include <OpenGL/glext.h>
 #include <GLFW/glfw3.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -28,24 +29,23 @@
 
 #include <cyMatrix.h>
 
-#include "GLStates.h"
 #include "glfwHelpers.cpp"
 #include "Camera.h"
-#include "GLMesh.h"
+#include "GLStates.h"
 #include "Light.h"
-#include "Blinn.h"
-
+#include "GLMesh.h"
+#include "Scene.h"
 
 // Global Variables
 extern GLFWwindow* window;
-extern Camera cam;
+extern Camera firstCam;
+extern Camera secondCam;
 extern GLStates glStates;
 
 // Scene Variables
 extern Light l;
-extern Blinn b;
 
-std::string modelPath = "./teapot.obj";
+std::string modelPath = "./yoda/yoda.obj";
 
 int main(int argc, char* argv[])
 {
@@ -62,15 +62,42 @@ int main(int argc, char* argv[])
 	
 
 	// Setup scene
-	GLMesh currentMesh = GLMesh(modelPath, &glStates, cyMatrix4f::Identity());
-	currentMesh.Center();
+	GLRenderBuffer firstBuffer(&glStates);
+	GLMesh mainMesh;
+	// Special case for the broken yoda model
+    if (modelPath.find("yoda.obj"))
+    {
+    	mainMesh = GLMesh(modelPath, &glStates, cyMatrix4f::Scale(0.001));
+    }
+    // Center all other models 
+    else
+    {
+		mainMesh = GLMesh(modelPath, &glStates, cyMatrix4f::Identity()); 
+		mainMesh.Center();
+    }
 
-	glUniform3fv(glStates.cameraPos, 1, (const GLfloat*) &cam.pos);
-	l.sendTo(&glStates);
-	b.sendTo(&glStates);
+    GLMesh quadMesh;
+    quadMesh = GLMesh("./quad.obj", &glStates, &firstBuffer);
+
+    Scene firstScene;
+    firstScene.l = &l;
+    firstScene.cam = &firstCam;
+    firstScene.meshList.push_back(mainMesh);
+
+    Scene secondScene;
+    secondScene.l = &l;
+    secondScene.cam = &secondCam;
+    secondScene.meshList.push_back(quadMesh);
+
+
+
+    // Camera
+	// glUniform3fv(glStates.cameraPos, 1, (const GLfloat*) &cam.pos);
+	// // Light
+	// l.sendTo(&glStates);
 
     glEnable(GL_DEPTH_TEST);
-    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glClearColor(0.3, 0.3, 0.3, 1.0);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -81,21 +108,9 @@ int main(int argc, char* argv[])
     	// auto timeDiff = std::chrono::duration_cast<std::chrono::milliseconds>(current - begin).count();
     	// float timeDiffF = timeDiff * 0.001;
 
-    	// printf("Cam Pos %f %f %f\n", cam.pos[0], cam.pos[1], cam.pos[2]);
+    	DrawSceneToBuffer(&firstScene, &firstBuffer, &glStates);
 
-    	// Update light
-    	l.sendTo(&glStates);
-
-    	// MVP Matrix
-    	auto Projection = cyMatrix4f::Perspective(cam.fov, 1.0, 1, 100);
-    	auto View = cyMatrix4f::View(cam.pos, cam.lookAt, cam.up);
-    	auto MVP = Projection * View * currentMesh.modelMatrix;
-
-    	//Set Attributes
-    	glUniformMatrix4fv(glStates.MVP, 1, GL_FALSE, (const GLfloat*) &MVP);
-    	glUniformMatrix4fv(glStates.M, 1, GL_FALSE, (const GLfloat*) &currentMesh.modelMatrix);
-
-    	currentMesh.Draw();
+    	DrawScene(&secondScene, &glStates);
 
 	    glfwSwapBuffers(window);
 	    glfwPollEvents();

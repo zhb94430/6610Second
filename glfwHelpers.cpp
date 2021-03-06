@@ -24,7 +24,8 @@
 #include "GLStates.h"
 
 extern GLStates glStates;
-extern Camera cam;
+extern Camera firstCam;
+extern Camera secondCam;
 extern Light l;
 
 GLFWwindow* window;
@@ -32,6 +33,7 @@ GLFWwindow* window;
 bool MR_PRESSED = false;
 bool ML_PRESSED = false;
 bool CTL_PRESSED = false;
+bool ALT_PRESSED = false;
 
 double xposPrev = 0.0;
 double yposPrev = 0.0;
@@ -69,6 +71,14 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
             case GLFW_KEY_RIGHT_CONTROL:
                 CTL_PRESSED = true;
                 break;
+
+            case GLFW_KEY_LEFT_ALT:
+                ALT_PRESSED = true;
+                break;
+
+            case GLFW_KEY_RIGHT_ALT:
+            ALT_PRESSED = true;
+            break;
 		}
 	}
 
@@ -83,6 +93,14 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
             case GLFW_KEY_RIGHT_CONTROL:
                 CTL_PRESSED = false;
                 break;
+
+            case GLFW_KEY_LEFT_ALT:
+                ALT_PRESSED = false;
+                break;
+
+            case GLFW_KEY_RIGHT_ALT:
+                ALT_PRESSED = false;
+                break;
         }
     }
 }
@@ -95,9 +113,18 @@ static void cursor_position_callback(GLFWwindow* window, double xpos, double ypo
     // Calculate new camera dist based on y_delta
     if (MR_PRESSED)
     {
-        auto lookAt2Pos = cam.pos - cam.lookAt;
-        double scale = 1.0 + distSensitivity * y_delta;
-        cam.pos = cam.lookAt + lookAt2Pos * scale;
+        if (ALT_PRESSED)
+        {
+            auto lookAt2Pos = firstCam.pos - firstCam.lookAt;
+            double scale = 1.0 + distSensitivity * y_delta;
+            firstCam.pos = firstCam.lookAt + lookAt2Pos * scale;
+        }
+        else
+        {
+            auto lookAt2Pos = secondCam.pos - secondCam.lookAt;
+            double scale = 1.0 + distSensitivity * y_delta;
+            secondCam.pos = secondCam.lookAt + lookAt2Pos * scale;
+        }
     }
 
     // Calculate new camera pos based on x_delta & y_delta
@@ -111,13 +138,21 @@ static void cursor_position_callback(GLFWwindow* window, double xpos, double ypo
 
             l.pos = xRot * yRot * l.pos; 
         }
-        else
+        else if (ALT_PRESSED)
         {
             // Rotate in X and Y
             auto xRot = cyMatrix3f::RotationX(y_delta * camAngleSensitivity);
             auto yRot = cyMatrix3f::RotationY(x_delta * camAngleSensitivity);
 
-            cam.pos = xRot * yRot * cam.pos; 
+            firstCam.pos = xRot * yRot * firstCam.pos; 
+        }
+        else 
+        {
+            // Rotate in X and Y
+            auto xRot = cyMatrix3f::RotationX(y_delta * camAngleSensitivity);
+            auto yRot = cyMatrix3f::RotationY(x_delta * camAngleSensitivity);
+
+            secondCam.pos = xRot * yRot * secondCam.pos; 
         }
     }
 

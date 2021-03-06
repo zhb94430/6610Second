@@ -25,11 +25,18 @@ struct Camera
 	float fov;
 };
 
-Camera cam = {
+Camera firstCam = {
 		    .up = cyPoint3f(0, 1, 0),
 		  	.pos = cyPoint3f(10, 10, 0),
 		  	.lookAt = cyPoint3f(0, 0, 0),
 		  	.fov = 1.13446 // 65 Degrees
 		  };
+
+Camera secondCam = {
+			.up = cyPoint3f(0, 1, 0),
+			.pos = cyPoint3f(10, 10, 0),
+			.lookAt = cyPoint3f(0, 0, 0),
+			.fov = 1.13446 // 65 Degrees
+};
 
 #endif // CAMERA_H

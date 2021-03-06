@@ -22,11 +22,18 @@ struct GLStates
 	GLuint VBO = 0;
 	GLuint program = 0;
 
+
+
+
 	// Vertex Shader
 	GLuint MVP = 0;
 	GLuint M = 0;
 	GLuint modelPos = 0;
 	GLuint modelNor = 0;
+	GLuint modelUV = 0;
+
+
+
 
 	// Fragment Shader
 	// Camera
@@ -41,6 +48,9 @@ struct GLStates
 	GLuint b_ambient = 0;
 	GLuint b_diffuse = 0;
 	GLuint b_specular = 0;
+	GLuint b_texAmbient = 0;
+	GLuint b_texDiffuse = 0;
+	GLuint b_texSpecular = 0;
 };
 
 GLStates glStates;
@@ -108,6 +118,7 @@ void loadProgram(GLStates* glStates)
     glStates->M = glGetUniformLocation(glStates->program, "M");
     glStates->modelPos = glGetAttribLocation(glStates->program, "modelPos");
     glStates->modelNor = glGetAttribLocation(glStates->program, "modelNor");
+    glStates->modelUV = glGetAttribLocation(glStates->program, "modelUV");
     
 	glStates->cameraPos = glGetUniformLocation(glStates->program, "cameraPos");
 
@@ -118,6 +129,9 @@ void loadProgram(GLStates* glStates)
     glStates->b_ambient = glGetUniformLocation(glStates->program, "b.ambient");
     glStates->b_diffuse = glGetUniformLocation(glStates->program, "b.diffuse");
     glStates->b_specular = glGetUniformLocation(glStates->program, "b.specular");
+    glStates->b_texAmbient = glGetUniformLocation(glStates->program, "b.texAmbient");
+    glStates->b_texDiffuse = glGetUniformLocation(glStates->program, "b.texDiffuse");
+    glStates->b_texSpecular = glGetUniformLocation(glStates->program, "b.texSpecular");
 }
 
 #endif // GL_STATES_H

@@ -17,6 +17,8 @@
 #include <cyVector.h>
 #include <cyPoint.h>
 
+#include "GLStates.h"
+
 struct Light 
 {
     cyPoint3f pos;
@@ -31,6 +33,6 @@ struct Light
     }
 };
 
-Light l = { cyPoint3f(30.0, 10.0, 10.0), cyVec3f(1.0, 1.0, 1.0), 390.0 };
+Light l = { cyPoint3f(0.0, 8.0, 5.0), cyVec3f(1.0, 1.0, 1.0), 200.0 };
 
 #endif // LIGHT_H
