@@ -25,6 +25,8 @@ struct Blinn
     cyVec3f ambient;
     cyVec3f diffuse;
     cyVec3f specular;
+    cyVec3f specularReflection;
+    int sampleMirror;
 
     GLuint texAmbient;
     GLuint texDiffuse;
@@ -38,6 +40,8 @@ struct Blinn
 	    ambient = cyVec3f(0.1, 0.2, 0.1);
 	    diffuse = cyVec3f(10.0/255.0, 230.0/255.0, 10.0/255.0);
 	    specular = cyVec3f(1.0, 1.0, 1.0);
+	    specularReflection = cyVec3f(0.0, 0.0, 0.0);
+	    sampleMirror = 0;
 
 	    texAmbient = 0;
 	    texDiffuse = 0;
@@ -78,10 +82,8 @@ struct Blinn
     	glUniform3fv(glStates->b_ambient, 1, (const GLfloat*) &ambient);
     	glUniform3fv(glStates->b_diffuse, 1, (const GLfloat*) &diffuse);
     	glUniform3fv(glStates->b_specular, 1, (const GLfloat*) &specular);
-
-    	glUniform1i(glStates->b_texAmbient, 0);
-	    glUniform1i(glStates->b_texDiffuse, 0);
-	    glUniform1i(glStates->b_texSpecular, 0);
+    	glUniform3fv(glStates->b_specularReflection, 1, (const GLfloat*) &specularReflection);
+    	glUniform1i(glStates->b_sampleMirror, sampleMirror);	// Toggle mirror sampling
 
     	//Bind the texture if they exists
     	if (texAmbient > 0)
@@ -93,7 +95,7 @@ struct Blinn
     	}
     	if (texDiffuse > 0)
     	{
-		    glUniform1i(glStates->b_texDiffuse, 1);
+    		glUniform1i(glStates->b_texDiffuse, 1);
     		glActiveTexture(GL_TEXTURE1);
 	        glBindTexture(GL_TEXTURE_2D, texDiffuse);
 	        glGenerateMipmap(GL_TEXTURE_2D);

@@ -32,11 +32,18 @@ Camera firstCam = {
 		  	.fov = 1.13446 // 65 Degrees
 		  };
 
-Camera secondCam = {
+Camera mainCam = {
 			.up = cyPoint3f(0, 1, 0),
 			.pos = cyPoint3f(10, 10, 0),
 			.lookAt = cyPoint3f(0, 0, 0),
 			.fov = 1.13446 // 65 Degrees
+};
+
+Camera mirrorCam = {
+			.up = mainCam.up,
+			.pos = cyPoint3f(mainCam.pos[0], -mainCam.pos[1], mainCam.pos[2]),
+			.lookAt = mainCam.lookAt,
+			.fov = mainCam.fov
 };
 
 #endif // CAMERA_H

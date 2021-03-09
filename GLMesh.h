@@ -26,7 +26,7 @@ public:
 
 	GLMesh();
 	GLMesh(std::string filePath, GLStates* _glStates, GLRenderBuffer* renderBuffer = NULL);
-	GLMesh(std::string filePath, GLStates* _glStates, cyMatrix4f m);
+	GLMesh(std::string filePath, GLStates* _glStates, cyMatrix4f m, GLRenderBuffer* renderBuffer = NULL);
 
 	void Draw();
 	void Center(); //Centers the mesh based on bounding box
@@ -87,7 +87,7 @@ GLMesh::GLMesh(std::string filePath, GLStates* _glStates, GLRenderBuffer* render
 	
 }
 
-GLMesh::GLMesh(std::string filePath, GLStates* _glStates, cyMatrix4f m)
+GLMesh::GLMesh(std::string filePath, GLStates* _glStates, cyMatrix4f m, GLRenderBuffer* renderBuffer)
 {
 	modelMatrix = m;
 	glStates = _glStates;
@@ -97,7 +97,14 @@ GLMesh::GLMesh(std::string filePath, GLStates* _glStates, cyMatrix4f m)
 		printf("glStates initialized to NULL, program behavior undefined\n");
 	}
 
-	Load(filePath);
+	if (renderBuffer)
+	{
+		Load(filePath, renderBuffer);
+	}
+	else
+	{
+		Load(filePath);
+	}
 }
 
 void GLMesh::Load(std::string filePath, GLRenderBuffer* renderBuffer)
@@ -184,64 +191,82 @@ void GLMesh::Load(std::string filePath, GLRenderBuffer* renderBuffer)
     }
 
     int vertexCount = 0;
-    for (int i = 0; i < mesh.NM(); ++i)
+
+    // No material, generate default blinn material so I can see stuff
+    if (mesh.NM() == 0)
     {
-    	int currentFaceCount = mesh.GetMaterialFaceCount(i);
-        cyTriMesh::Mtl currentTriMtl = mesh.M(i);
+    	Blinn dummyMaterial = Blinn();
+    	dummyMaterial.startIndex = 0;
+    	dummyMaterial.numberOfVertices = mesh.NF()*3;
 
-        Blinn currentMaterial = Blinn();
-    	currentMaterial.startIndex = vertexCount;
-    	currentMaterial.numberOfVertices = currentFaceCount * 3;
+    	dummyMaterial.specularReflection = cyVec3f(0.8, 0.8, 0.8);
 
-    	// Assume all have a,d,s color
-    	currentMaterial.ambient = cyVec3f(currentTriMtl.Ka[0], currentTriMtl.Ka[1], currentTriMtl.Ka[2]);
-		currentMaterial.diffuse = cyVec3f(currentTriMtl.Kd[0], currentTriMtl.Kd[1], currentTriMtl.Kd[2]);
-		currentMaterial.specular = cyVec3f(currentTriMtl.Ks[0], currentTriMtl.Ks[1], currentTriMtl.Ks[2]);
+    	materials.push_back(dummyMaterial);
+    }
+    else
+    {
+    	for (int i = 0; i < mesh.NM(); ++i)
+	    {
+	    	int currentFaceCount = mesh.GetMaterialFaceCount(i);
+	        cyTriMesh::Mtl currentTriMtl = mesh.M(i);
 
-        if (currentTriMtl.map_Ka) 
-        {	
-        	// Exception for Render to Texture
-        	if (std::string(currentTriMtl.map_Ka.data) == "R2T")
-        	{
-        		// Bind some var in glState to texture?
-        		if (renderBuffer)
-        		{
-        			currentMaterial.texAmbient = renderBuffer->textureID;
-        		}        		
-        	}
-        	else
-        	{
-	    		currentMaterial.LoadTexture(processedPath + "/" + std::string(currentTriMtl.map_Ka.data),
-	        							&currentMaterial.texAmbient);
-	    	}
-        }
+	        Blinn currentMaterial = Blinn();
+	    	currentMaterial.startIndex = vertexCount;
+	    	currentMaterial.numberOfVertices = currentFaceCount * 3;
 
-        if (currentTriMtl.map_Kd) 
-        {
-        	// if (std::string(currentTriMtl.map_Kd.data) == "R2T")
-        	// {
-        	// 	// Bind some var in glState to texture?
-        	// 	if (renderBuffer)
-        	// 	{
-        	// 		currentMaterial.texDiffuse = renderBuffer->textureID;
-        	// 	}        		
-        	// }
-        	// else
-        	// {
-        		currentMaterial.LoadTexture(processedPath + "/" + std::string(currentTriMtl.map_Kd.data),
-            							&currentMaterial.texDiffuse); 
-        	// }
-        }
+	    	// Assume all have a,d,s color
+	    	currentMaterial.ambient = cyVec3f(currentTriMtl.Ka[0], currentTriMtl.Ka[1], currentTriMtl.Ka[2]);
+			currentMaterial.diffuse = cyVec3f(currentTriMtl.Kd[0], currentTriMtl.Kd[1], currentTriMtl.Kd[2]);
+			currentMaterial.specular = cyVec3f(currentTriMtl.Ks[0], currentTriMtl.Ks[1], currentTriMtl.Ks[2]);
 
-        if (currentTriMtl.map_Ks) 
-        {
-            currentMaterial.LoadTexture(processedPath + "/" + std::string(currentTriMtl.map_Ks.data),
-            							&currentMaterial.texSpecular);
-        }
+	        if (currentTriMtl.map_Ka) 
+	        {	
+	        	// Exception for Render to Texture
+	        	if (std::string(currentTriMtl.map_Ka.data) == "R2T")
+	        	{
+	        		// Bind some var in glState to texture?
+	        		if (renderBuffer)
+	        		{
+	        			currentMaterial.texAmbient = renderBuffer->textureID;
 
-        materials.push_back(currentMaterial);
-        vertexCount += currentMaterial.numberOfVertices;
-    }    
+	        			// Temporary hard coding for project 6 mirror
+	        			currentMaterial.sampleMirror = 1;
+	        		}        		
+	        	}
+	        	else
+	        	{
+		    		currentMaterial.LoadTexture(processedPath + "/" + std::string(currentTriMtl.map_Ka.data),
+		        							&currentMaterial.texAmbient);
+		    	}
+	        }
+
+	        if (currentTriMtl.map_Kd) 
+	        {
+	        	// if (std::string(currentTriMtl.map_Kd.data) == "R2T")
+	        	// {
+	        	// 	// Bind some var in glState to texture?
+	        	// 	if (renderBuffer)
+	        	// 	{
+	        	// 		currentMaterial.texDiffuse = renderBuffer->textureID;
+	        	// 	}        		
+	        	// }
+	        	// else
+	        	// {
+	        		currentMaterial.LoadTexture(processedPath + "/" + std::string(currentTriMtl.map_Kd.data),
+	            							&currentMaterial.texDiffuse); 
+	        	// }
+	        }
+
+	        if (currentTriMtl.map_Ks) 
+	        {
+	            currentMaterial.LoadTexture(processedPath + "/" + std::string(currentTriMtl.map_Ks.data),
+	            							&currentMaterial.texSpecular);
+	        }
+
+	        materials.push_back(currentMaterial);
+	        vertexCount += currentMaterial.numberOfVertices;
+	    }    
+    }
 }
 
 void GLMesh::Draw()
@@ -276,9 +301,9 @@ void GLMesh::Center()
 {
 	auto modelCenter = mesh.GetBoundMin() + (mesh.GetBoundMax() - mesh.GetBoundMin())/2;
 
-	printf("Model Center: %f %f %f\n", modelCenter[0], modelCenter[1], modelCenter[2]);
+	// printf("Model Center: %f %f %f\n", modelCenter[0], modelCenter[1], modelCenter[2]);
 
-	modelMatrix = cyMatrix4f::Translation(-modelCenter);
+	modelMatrix = cyMatrix4f::Translation(-modelCenter) * modelMatrix;
 }
 
 #endif // GL_MESH_H

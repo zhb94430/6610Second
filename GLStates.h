@@ -48,9 +48,44 @@ struct GLStates
 	GLuint b_ambient = 0;
 	GLuint b_diffuse = 0;
 	GLuint b_specular = 0;
+	GLuint b_specularReflection = 0;
 	GLuint b_texAmbient = 0;
 	GLuint b_texDiffuse = 0;
 	GLuint b_texSpecular = 0;
+	GLuint b_sampleMirror = 0;
+
+	// Skybox
+	GLuint skyboxValue = 0;
+	GLuint skyboxTex = 0;
+
+	
+
+	void queryVariableLocations()
+	{
+		MVP = glGetUniformLocation(program, "MVP");
+	    M = glGetUniformLocation(program, "M");
+	    modelPos = glGetAttribLocation(program, "modelPos");
+	    modelNor = glGetAttribLocation(program, "modelNor");
+	    modelUV = glGetAttribLocation(program, "modelUV");
+	    
+		cameraPos = glGetUniformLocation(program, "cameraPos");
+
+	    l_pos = glGetUniformLocation(program, "l.pos");
+	    l_color = glGetUniformLocation(program, "l.color");
+	    l_power = glGetUniformLocation(program, "l.power");
+
+	    b_ambient = glGetUniformLocation(program, "b.ambient");
+	    b_diffuse = glGetUniformLocation(program, "b.diffuse");
+	    b_specular = glGetUniformLocation(program, "b.specular");
+	    b_specularReflection = glGetUniformLocation(program, "b.specularReflection");
+	    b_texAmbient = glGetUniformLocation(program, "b_texAmbient");
+	    b_texDiffuse = glGetUniformLocation(program, "b_texDiffuse");
+	    b_texSpecular = glGetUniformLocation(program, "b_texSpecular");
+	    b_sampleMirror = glGetUniformLocation(program, "b.sampleMirror");
+
+	    skyboxValue = glGetUniformLocation(program, "skyboxValue");
+		skyboxTex = glGetUniformLocation(program, "skyboxTex");	
+	}
 };
 
 GLStates glStates;
@@ -113,25 +148,8 @@ void loadProgram(GLStates* glStates)
     glLinkProgram(glStates->program);
     glUseProgram(glStates->program);
 
-    // Store Attributes
-    glStates->MVP = glGetUniformLocation(glStates->program, "MVP");
-    glStates->M = glGetUniformLocation(glStates->program, "M");
-    glStates->modelPos = glGetAttribLocation(glStates->program, "modelPos");
-    glStates->modelNor = glGetAttribLocation(glStates->program, "modelNor");
-    glStates->modelUV = glGetAttribLocation(glStates->program, "modelUV");
-    
-	glStates->cameraPos = glGetUniformLocation(glStates->program, "cameraPos");
-
-    glStates->l_pos = glGetUniformLocation(glStates->program, "l.pos");
-    glStates->l_color = glGetUniformLocation(glStates->program, "l.color");
-    glStates->l_power = glGetUniformLocation(glStates->program, "l.power");
-
-    glStates->b_ambient = glGetUniformLocation(glStates->program, "b.ambient");
-    glStates->b_diffuse = glGetUniformLocation(glStates->program, "b.diffuse");
-    glStates->b_specular = glGetUniformLocation(glStates->program, "b.specular");
-    glStates->b_texAmbient = glGetUniformLocation(glStates->program, "b.texAmbient");
-    glStates->b_texDiffuse = glGetUniformLocation(glStates->program, "b.texDiffuse");
-    glStates->b_texSpecular = glGetUniformLocation(glStates->program, "b.texSpecular");
+    // Store Variable References
+    glStates->queryVariableLocations();
 }
 
 #endif // GL_STATES_H

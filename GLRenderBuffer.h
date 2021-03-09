@@ -30,9 +30,8 @@ public:
 	GLRenderBuffer();
 	GLRenderBuffer(GLStates* _glStates);
 
-	// void SetWidth(int _width) {width = _width;};
-	// void SetHeight(int _height) {height = _height;};
-	// GLuint GetTextureID() {return textureID;};
+	void Bind();
+	void Unbind();
 
 	int width;
 	int height;
@@ -46,6 +45,10 @@ public:
 	GLuint depthBufferID;
 
 	GLenum drawBufferArray[1] = {GL_COLOR_ATTACHMENT0};
+
+	// Previous GL States
+	GLint prevBufferID;
+	GLint prevViewport[4];
 };
 
 GLRenderBuffer::GLRenderBuffer()
@@ -60,11 +63,12 @@ GLRenderBuffer::GLRenderBuffer()
 GLRenderBuffer::GLRenderBuffer(GLStates* _glStates) : GLRenderBuffer()
 {
 	glStates = _glStates;
+
 	GLfloat afLevel;
 	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &afLevel);
 
 	// GL Stuff
-	
+	Bind();
 	// Frame Buffer
 	glGenFramebuffers(1, &frameBufferID);
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBufferID);
@@ -98,9 +102,22 @@ GLRenderBuffer::GLRenderBuffer(GLStates* _glStates) : GLRenderBuffer()
         printf("Failed to initialize render buffer");
     }
 
-
+    Unbind();
 }
 
+void GLRenderBuffer::Bind()
+{
+	glGetIntegerv(GL_VIEWPORT, prevViewport);
+	glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &prevBufferID);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBufferID);
+	glViewport(0,0, width, height);
+}
+
+void GLRenderBuffer::Unbind()
+{
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prevBufferID);
+	glViewport(prevViewport[0],prevViewport[1],prevViewport[2],prevViewport[3]);
+}
 
 
 #endif // GL_RENDER_BUFFER_H

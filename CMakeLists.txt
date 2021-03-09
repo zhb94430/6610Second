@@ -24,21 +24,22 @@ add_custom_command(
         COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_SOURCE_DIR}/FragShader.glsl
                 ${CMAKE_CURRENT_BINARY_DIR}/FragShader.glsl
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/FragShader.glsl
         COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_SOURCE_DIR}/VertexShader.glsl
                 ${CMAKE_CURRENT_BINARY_DIR}/VertexShader.glsl
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/VertexShader.glsl
         COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_SOURCE_DIR}/teapot.obj
                 ${CMAKE_CURRENT_BINARY_DIR}/teapot.obj
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/teapot.obj
+                COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_SOURCE_DIR}/sphere.obj
+                ${CMAKE_CURRENT_BINARY_DIR}/sphere.obj
         COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_SOURCE_DIR}/quad.obj
                 ${CMAKE_CURRENT_BINARY_DIR}/quad.obj
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/quad.obj
         COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_SOURCE_DIR}/quad.mtl
                 ${CMAKE_CURRENT_BINARY_DIR}/quad.mtl
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/quad.mtl
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+                ${CMAKE_SOURCE_DIR}/cubemap/
+                ${CMAKE_CURRENT_BINARY_DIR}/cubemap/
         )

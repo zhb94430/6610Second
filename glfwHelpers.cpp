@@ -25,7 +25,8 @@
 
 extern GLStates glStates;
 extern Camera firstCam;
-extern Camera secondCam;
+extern Camera mainCam;
+extern Camera mirrorCam;
 extern Light l;
 
 GLFWwindow* window;
@@ -121,9 +122,11 @@ static void cursor_position_callback(GLFWwindow* window, double xpos, double ypo
         }
         else
         {
-            auto lookAt2Pos = secondCam.pos - secondCam.lookAt;
+            auto lookAt2Pos = mainCam.pos - mainCam.lookAt;
+            auto lookAt2PosMirror = mirrorCam.pos - mirrorCam.lookAt;
             double scale = 1.0 + distSensitivity * y_delta;
-            secondCam.pos = secondCam.lookAt + lookAt2Pos * scale;
+            mainCam.pos = mainCam.lookAt + lookAt2Pos * scale;
+            mirrorCam.pos = cyPoint3f(mainCam.pos[0], -mainCam.pos[1], mainCam.pos[2]);
         }
     }
 
@@ -151,8 +154,11 @@ static void cursor_position_callback(GLFWwindow* window, double xpos, double ypo
             // Rotate in X and Y
             auto xRot = cyMatrix3f::RotationX(y_delta * camAngleSensitivity);
             auto yRot = cyMatrix3f::RotationY(x_delta * camAngleSensitivity);
+            // auto xRotNeg = cyMatrix3f::RotationX(-y_delta * camAngleSensitivity);
+            // auto yRotNeg = cyMatrix3f::RotationY(-x_delta * camAngleSensitivity);
 
-            secondCam.pos = xRot * yRot * secondCam.pos; 
+            mainCam.pos = xRot * yRot * mainCam.pos; 
+            mirrorCam.pos = cyPoint3f(mainCam.pos[0], -mainCam.pos[1], mainCam.pos[2]);
         }
     }
 
@@ -199,8 +205,8 @@ static void GLFWInit()
         exit(EXIT_FAILURE);
     }
     
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_DEPTH_BITS, 8);

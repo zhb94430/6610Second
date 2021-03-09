@@ -33,6 +33,7 @@ struct Light
     }
 };
 
-Light l = { cyPoint3f(0.0, 8.0, 5.0), cyVec3f(1.0, 1.0, 1.0), 200.0 };
+// Light l = { cyPoint3f(0.0, 12.0, 7.5), cyVec3f(1.0, 1.0, 1.0), 100.0 };
+Light l = { cyPoint3f(0.0, 8.0, 4.25), cyVec3f(1.0, 1.0, 1.0), 200.0 };
 
 #endif // LIGHT_H

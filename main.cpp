@@ -35,6 +35,7 @@
 #include "Light.h"
 #include "GLMesh.h"
 #include "Scene.h"
+#include "Skybox.h"
 
 // Global Variables
 extern GLFWwindow* window;
@@ -46,6 +47,8 @@ extern GLStates glStates;
 extern Light l;
 
 std::string modelPath = "./yoda/yoda.obj";
+// std::string modelPath = "./teapot.obj";
+// std::string modelPath = "./sphere.obj";
 
 int main(int argc, char* argv[])
 {
@@ -62,39 +65,47 @@ int main(int argc, char* argv[])
 	
 
 	// Setup scene
-	GLRenderBuffer firstBuffer(&glStates);
+	GLRenderBuffer mirrorBuffer(&glStates);
+	Skybox sky("./cubemap/", &glStates);
+
 	GLMesh mainMesh;
 	// Special case for the broken yoda model
-    if (modelPath.find("yoda.obj"))
+    if (modelPath.find("yoda.obj") != std::string::npos)
     {
     	mainMesh = GLMesh(modelPath, &glStates, cyMatrix4f::Scale(0.001));
     }
     // Center all other models 
     else
     {
-		mainMesh = GLMesh(modelPath, &glStates, cyMatrix4f::Identity()); 
+		// mainMesh = GLMesh(modelPath, &glStates, cyMatrix4f::Identity()); 
+    	auto mainMeshModel = cyMatrix4f::Translation(cyVec3f(0.0, 2.0, 0.0)) 
+    					   * cyMatrix4f::Scale(0.25)
+    					   * cyMatrix4f::RotationX(-1.570796);
+
+		mainMesh = GLMesh(modelPath, &glStates, mainMeshModel); 
 		mainMesh.Center();
     }
 
-    GLMesh quadMesh;
-    quadMesh = GLMesh("./quad.obj", &glStates, &firstBuffer);
+    GLMesh quadMesh("./quad.obj", &glStates, cyMatrix4f::Scale(10), &mirrorBuffer);
 
-    Scene firstScene;
-    firstScene.l = &l;
-    firstScene.cam = &firstCam;
-    firstScene.meshList.push_back(mainMesh);
+    Scene mirrorScene;
+    mirrorScene.l = &l;
+    mirrorScene.cam = &mirrorCam;
+    mirrorScene.sky = &sky;
+    mirrorScene.meshList.push_back(mainMesh);
+
+    // Scene firstScene;
+    // firstScene.l = &l;
+    // firstScene.cam = &mainCam;
+    // firstScene.sky = &sky;
+    // firstScene.meshList.push_back(mainMesh);
 
     Scene secondScene;
     secondScene.l = &l;
-    secondScene.cam = &secondCam;
+    secondScene.cam = &mainCam;
+    secondScene.sky = &sky;
     secondScene.meshList.push_back(quadMesh);
-
-
-
-    // Camera
-	// glUniform3fv(glStates.cameraPos, 1, (const GLfloat*) &cam.pos);
-	// // Light
-	// l.sendTo(&glStates);
+    secondScene.meshList.push_back(mainMesh);
 
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.3, 0.3, 0.3, 1.0);
@@ -103,14 +114,21 @@ int main(int argc, char* argv[])
     {
 
     	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    	
+		glClearColor(0.3, 0.3, 0.3, 1.0);    	
+
     	// auto current = std::chrono::steady_clock::now();
     	// auto timeDiff = std::chrono::duration_cast<std::chrono::milliseconds>(current - begin).count();
     	// float timeDiffF = timeDiff * 0.001;
 
-    	DrawSceneToBuffer(&firstScene, &firstBuffer, &glStates);
+    	// DrawSceneToBuffer(&firstScene, &firstBuffer, &glStates);
+    	// DrawScene(&secondScene, &glStates);
+
+    	// DrawScene(&firstScene, &glStates);
+
+    	DrawSceneToBuffer(&mirrorScene, &mirrorBuffer, &glStates);
 
     	DrawScene(&secondScene, &glStates);
+    	
 
 	    glfwSwapBuffers(window);
 	    glfwPollEvents();
