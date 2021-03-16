@@ -17,6 +17,8 @@
 #include <cyTriMesh.h>
 #include <cyPoint.h>
 
+#include "Light.h"
+
 struct Camera
 {
 	cyPoint3f pos;
@@ -44,6 +46,15 @@ Camera mirrorCam = {
 			.pos = cyPoint3f(mainCam.pos[0], -mainCam.pos[1], mainCam.pos[2]),
 			.lookAt = mainCam.lookAt,
 			.fov = mainCam.fov
+};
+
+extern Light l;
+
+Camera lightCam = {
+			.up = cyPoint3f(0, 1, 0),
+			.pos = cyPoint3f(l.pos[0], l.pos[1], l.pos[2]),
+			.lookAt = cyPoint3f(0, 0, 0),
+			.fov = 0.7853982 // 45 Degrees
 };
 
 #endif // CAMERA_H

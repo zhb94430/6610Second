@@ -28,6 +28,12 @@ add_custom_command(
                 ${CMAKE_SOURCE_DIR}/VertexShader.glsl
                 ${CMAKE_CURRENT_BINARY_DIR}/VertexShader.glsl
         COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_SOURCE_DIR}/ShadowFragShader.glsl
+                ${CMAKE_CURRENT_BINARY_DIR}/ShadowFragShader.glsl
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_SOURCE_DIR}/ShadowVertexShader.glsl
+                ${CMAKE_CURRENT_BINARY_DIR}/ShadowVertexShader.glsl
+        COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_SOURCE_DIR}/teapot.obj
                 ${CMAKE_CURRENT_BINARY_DIR}/teapot.obj
                 COMMAND ${CMAKE_COMMAND} -E copy
@@ -42,4 +48,7 @@ add_custom_command(
         COMMAND ${CMAKE_COMMAND} -E copy_directory
                 ${CMAKE_SOURCE_DIR}/cubemap/
                 ${CMAKE_CURRENT_BINARY_DIR}/cubemap/
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+                ${CMAKE_SOURCE_DIR}/light/
+                ${CMAKE_CURRENT_BINARY_DIR}/light/
         )

@@ -85,25 +85,31 @@ struct Blinn
     	glUniform3fv(glStates->b_specularReflection, 1, (const GLfloat*) &specularReflection);
     	glUniform1i(glStates->b_sampleMirror, sampleMirror);	// Toggle mirror sampling
 
+    	glUniform1i(glStates->b_texAmbient, 0);
+    	glUniform1i(glStates->b_texDiffuse, 0);
+    	glUniform1i(glStates->b_texSpecular, 0);
+    	glActiveTexture(GL_TEXTURE0);
+    	glBindTexture(GL_TEXTURE_2D, glStates->emptyTexID);
+
     	//Bind the texture if they exists
     	if (texAmbient > 0)
     	{
-    		glUniform1i(glStates->b_texAmbient, 0);
-    		glActiveTexture(GL_TEXTURE0);
+    		glUniform1i(glStates->b_texAmbient, 1);
+    		glActiveTexture(GL_TEXTURE1);
 	        glBindTexture(GL_TEXTURE_2D, texAmbient);
 	        glGenerateMipmap(GL_TEXTURE_2D);
     	}
     	if (texDiffuse > 0)
     	{
-    		glUniform1i(glStates->b_texDiffuse, 1);
-    		glActiveTexture(GL_TEXTURE1);
+    		glUniform1i(glStates->b_texDiffuse, 2);
+    		glActiveTexture(GL_TEXTURE2);
 	        glBindTexture(GL_TEXTURE_2D, texDiffuse);
 	        glGenerateMipmap(GL_TEXTURE_2D);
     	}
     	if (texSpecular > 0)
     	{
-    		glUniform1i(glStates->b_texSpecular, 2);
-    		glActiveTexture(GL_TEXTURE2);
+    		glUniform1i(glStates->b_texSpecular, 3);
+    		glActiveTexture(GL_TEXTURE3);
 	        glBindTexture(GL_TEXTURE_2D, texSpecular);
 	        glGenerateMipmap(GL_TEXTURE_2D);
     	}

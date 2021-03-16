@@ -178,7 +178,6 @@ void GLMesh::Load(std::string filePath, GLRenderBuffer* renderBuffer)
     glVertexAttribPointer(glStates->modelNor, 3, GL_FLOAT, GL_FALSE, sizeof(CombinedVertex), (GLvoid*)(3*sizeof(GL_FLOAT)));
     glVertexAttribPointer(glStates->modelUV, 2, GL_FLOAT, GL_FALSE, sizeof(CombinedVertex), (GLvoid*)(6*sizeof(GL_FLOAT)));
 
-
     // Process Materials for GL
     // Prepare Path String
     // by trimming the .obj at the end
@@ -199,7 +198,7 @@ void GLMesh::Load(std::string filePath, GLRenderBuffer* renderBuffer)
     	dummyMaterial.startIndex = 0;
     	dummyMaterial.numberOfVertices = mesh.NF()*3;
 
-    	dummyMaterial.specularReflection = cyVec3f(0.8, 0.8, 0.8);
+    	dummyMaterial.specularReflection = cyVec3f(0.3, 0.3, 0.3);
 
     	materials.push_back(dummyMaterial);
     }
@@ -230,7 +229,7 @@ void GLMesh::Load(std::string filePath, GLRenderBuffer* renderBuffer)
 	        			currentMaterial.texAmbient = renderBuffer->textureID;
 
 	        			// Temporary hard coding for project 6 mirror
-	        			currentMaterial.sampleMirror = 1;
+	        			// currentMaterial.sampleMirror = 1;
 	        		}        		
 	        	}
 	        	else
@@ -242,19 +241,19 @@ void GLMesh::Load(std::string filePath, GLRenderBuffer* renderBuffer)
 
 	        if (currentTriMtl.map_Kd) 
 	        {
-	        	// if (std::string(currentTriMtl.map_Kd.data) == "R2T")
-	        	// {
-	        	// 	// Bind some var in glState to texture?
-	        	// 	if (renderBuffer)
-	        	// 	{
-	        	// 		currentMaterial.texDiffuse = renderBuffer->textureID;
-	        	// 	}        		
-	        	// }
-	        	// else
-	        	// {
+	        	if (std::string(currentTriMtl.map_Kd.data) == "R2T")
+	        	{
+	        		// Bind some var in glState to texture?
+	        		if (renderBuffer)
+	        		{
+	        			currentMaterial.texDiffuse = renderBuffer->textureID;
+	        		}        		
+	        	}
+	        	else
+	        	{
 	        		currentMaterial.LoadTexture(processedPath + "/" + std::string(currentTriMtl.map_Kd.data),
 	            							&currentMaterial.texDiffuse); 
-	        	// }
+	        	}
 	        }
 
 	        if (currentTriMtl.map_Ks) 

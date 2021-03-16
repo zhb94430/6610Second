@@ -17,8 +17,10 @@
 
 #include "GLMesh.h"
 #include "Light.h"
+#include "Camera.h"
 #include "Skybox.h"
 #include "GLRenderBuffer.h"
+#include "GLDepthBuffer.h"
 #include "GLStates.h"
 
 struct Scene
@@ -29,26 +31,45 @@ struct Scene
 	Skybox* sky;
 };
 
+extern Camera lightCam;
+
 // Draw one frame of the scene to current GL configuration
 void DrawScene(Scene* scene, GLStates* glStates)
 {
+	glUseProgram(glStates->program);
+	glStates->queryVariableLocations();
+
 	// Send to GL
 	glUniform3fv(glStates->cameraPos, 1, (const GLfloat*) &scene->cam->pos);
 	scene->l->sendTo(glStates);
 
 	// MVP Matrix
-	auto Projection = cyMatrix4f::Perspective(scene->cam->fov, 1.0, 1, 100);
+	auto Projection = cyMatrix4f::Perspective(scene->cam->fov, 800.0/600.0, 0.5, 50.0);
 	auto View = cyMatrix4f::View(scene->cam->pos, scene->cam->lookAt, scene->cam->up);
+	
+	// auto shadowMapConversion = cyMatrix4f(
+	// 						   0.5, 0.0, 0.0, 0.0,
+	// 						   0.0, 0.5, 0.0, 0.0,
+	// 						   0.0, 0.0, 0.5, 0.0,
+	// 						   0.5, 0.5, 0.5, 1.0);
 
-	// Skybox attributes
-	auto SkyModel = cyMatrix4f::Translation(scene->cam->pos);
-	auto SkyMVP = Projection * View * SkyModel;
+	auto shadowMapConversion = cyMatrix4f::Translation(cyVec3f(0.5, 0.5, 0.5)) *
+							   cyMatrix4f::Scale(0.5);
 
-	glUniformMatrix4fv(glStates->MVP, 1, GL_FALSE, (const GLfloat*) &SkyMVP);
-	glUniformMatrix4fv(glStates->M, 1, GL_FALSE, (const GLfloat*) &SkyModel);
+	auto shadowProjection = cyMatrix4f::Perspective(lightCam.fov, 800.0/600.0, 0.5, 50.0); // Temp workaround to get light matrices
+	auto shadowView = cyMatrix4f::View(lightCam.pos, lightCam.lookAt, lightCam.up);
 
-	scene->sky->Draw();
+	if (scene->sky != NULL)
+	{
+		// Skybox attributes
+		auto SkyModel = cyMatrix4f::Translation(scene->cam->pos);
+		auto SkyMVP = Projection * View * SkyModel;
 
+		glUniformMatrix4fv(glStates->MVP, 1, GL_FALSE, (const GLfloat*) &SkyMVP);
+		glUniformMatrix4fv(glStates->M, 1, GL_FALSE, (const GLfloat*) &SkyModel);
+
+		scene->sky->Draw();
+	}
 	
 	for (int i = 0; i < scene->meshList.size(); ++i)
 	{
@@ -56,10 +77,12 @@ void DrawScene(Scene* scene, GLStates* glStates)
 
 		auto Model = currentMesh->modelMatrix;
 		auto MVP = Projection * View * Model;
+		auto shadowMVP = shadowMapConversion * shadowProjection * shadowView * Model;
 
 		//Set Attributes
 		glUniformMatrix4fv(glStates->MVP, 1, GL_FALSE, (const GLfloat*) &MVP);
 		glUniformMatrix4fv(glStates->M, 1, GL_FALSE, (const GLfloat*) &Model);
+		glUniformMatrix4fv(glStates->shadowMVP, 1, GL_FALSE, (const GLfloat*) &shadowMVP);
 
 		currentMesh->Draw();
 	}
@@ -68,10 +91,14 @@ void DrawScene(Scene* scene, GLStates* glStates)
 // Draw one frame of the scene to provided buffer
 void DrawSceneToBuffer(Scene* scene, GLRenderBuffer* buffer, GLStates* glStates)
 {
+	glUseProgram(glStates->program);
+	glStates->queryVariableLocations();
+
 	// Bind Stuff
 	buffer->Bind();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glClearColor(0.1, 0.1, 0.1, 1.0);
+	// glClearColor(0.1, 0.1, 0.1, 1.0);
+	glClearColor(1.0, 1.0, 1.0, 1.0); 
 
 	DrawScene(scene, glStates);	
 
@@ -79,7 +106,28 @@ void DrawSceneToBuffer(Scene* scene, GLRenderBuffer* buffer, GLStates* glStates)
 
 	buffer->Unbind();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glClearColor(0.4, 0.4, 0.4, 1.0);
+	// glClearColor(0.4, 0.4, 0.4, 1.0);
+	glClearColor(1.0, 1.0, 1.0, 1.0); 
+}
+
+// Is this really necessary?
+void DrawSceneToDepthBuffer(Scene* scene, GLDepthBuffer* buffer, GLStates* glStates)
+{
+	// Set Program to shadow shader
+	glUseProgram(glStates->program);
+	glStates->queryShadowVariableLocations();
+
+	// Bind and set up the buffer
+	buffer->Bind();
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClearColor(1.0, 1.0, 1.0, 1.0); // Might want to change this later
+
+	DrawScene(scene, glStates);	
+
+	// Unbind
+	buffer->Unbind();
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClearColor(1.0, 1.0, 1.0, 1.0); // Might want to change this later
 }
 
 #endif // SCENE_H

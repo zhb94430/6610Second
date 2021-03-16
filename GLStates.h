@@ -12,28 +12,28 @@
 //  Created by Peter Zhang
 //  Copyright © 2021 Peter Zhang. All rights reserved.
 
+#include <OpenGL/gl3.h>
 #include <GLFW/glfw3.h>
 #include <vector>
 
+// Stores GL references to the main shader program
 struct GLStates
 {
-	// Data
+	// Empty Texture ID
+	GLuint emptyTexID = 0;
+
+	// Common References
 	GLuint VAO = 0;
 	GLuint VBO = 0;
 	GLuint program = 0;
 
-
-
-
 	// Vertex Shader
-	GLuint MVP = 0;
+	GLuint MVP = 0; // In shadow shader as well
+	GLuint shadowMVP = 0;
 	GLuint M = 0;
-	GLuint modelPos = 0;
+	GLuint modelPos = 0; // In shadow shader as well
 	GLuint modelNor = 0;
 	GLuint modelUV = 0;
-
-
-
 
 	// Fragment Shader
 	// Camera
@@ -41,8 +41,10 @@ struct GLStates
 
 	// Light Struct 
 	GLuint l_pos = 0;
+	GLuint l_dir = 0;
 	GLuint l_color = 0;
 	GLuint l_power = 0;
+	GLuint l_cutoff = 0;
 
 	// Blinn Struct
 	GLuint b_ambient = 0;
@@ -58,11 +60,12 @@ struct GLStates
 	GLuint skyboxValue = 0;
 	GLuint skyboxTex = 0;
 
-	
+	GLuint shadowMap = 0;
 
 	void queryVariableLocations()
 	{
 		MVP = glGetUniformLocation(program, "MVP");
+		shadowMVP = glGetUniformLocation(program, "shadowMVP");
 	    M = glGetUniformLocation(program, "M");
 	    modelPos = glGetAttribLocation(program, "modelPos");
 	    modelNor = glGetAttribLocation(program, "modelNor");
@@ -71,8 +74,10 @@ struct GLStates
 		cameraPos = glGetUniformLocation(program, "cameraPos");
 
 	    l_pos = glGetUniformLocation(program, "l.pos");
+	    l_dir = glGetUniformLocation(program, "l.dir");
 	    l_color = glGetUniformLocation(program, "l.color");
 	    l_power = glGetUniformLocation(program, "l.power");
+	    l_cutoff = glGetUniformLocation(program, "l.cutoff");
 
 	    b_ambient = glGetUniformLocation(program, "b.ambient");
 	    b_diffuse = glGetUniformLocation(program, "b.diffuse");
@@ -85,10 +90,38 @@ struct GLStates
 
 	    skyboxValue = glGetUniformLocation(program, "skyboxValue");
 		skyboxTex = glGetUniformLocation(program, "skyboxTex");	
+
+		shadowMap = glGetUniformLocation(program, "shadowMap");	
+	}
+
+	void queryShadowVariableLocations()
+	{
+		MVP = glGetUniformLocation(program, "MVP");
+		modelPos = glGetAttribLocation(program, "modelPos");
+	}
+
+	// Generate empty texture to feed the texture unit when not in use
+	// Should be called when a GLStates is created
+	// https://stackoverflow.com/questions/42238177/check-if-sampler2d-is-empty
+	void generateEmptyTexture()
+	{
+		glGenTextures(1, &emptyTexID);
+
+	    GLubyte data[] = { 255, 255, 255, 255 };
+
+	    glBindTexture(GL_TEXTURE_2D, emptyTexID);
+
+	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 	}
 };
 
 GLStates glStates;
+GLStates glShadowStates;
 
 GLuint LoadShader(GLenum shaderType, std::string path)
 {
@@ -151,5 +184,25 @@ void loadProgram(GLStates* glStates)
     // Store Variable References
     glStates->queryVariableLocations();
 }
+
+// Temporary workaround for shadow shaders
+void loadShadowProgram(GLStates* glShadowStates)
+{
+	// Main Shader
+	auto vertexShader = LoadShader(GL_VERTEX_SHADER, std::string("./ShadowVertexShader.glsl"));
+    auto fragShader = LoadShader(GL_FRAGMENT_SHADER, std::string("./ShadowFragShader.glsl"));
+    
+    // Program
+    glShadowStates->program = glCreateProgram();
+    glAttachShader(glShadowStates->program, vertexShader);
+    glAttachShader(glShadowStates->program, fragShader);
+    glLinkProgram(glShadowStates->program);
+    glUseProgram(glShadowStates->program);
+
+    // Store Variable References
+    glShadowStates->queryShadowVariableLocations();
+}
+
+
 
 #endif // GL_STATES_H

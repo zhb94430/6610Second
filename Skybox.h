@@ -139,8 +139,8 @@ void Skybox::Draw()
     glVertexAttribPointer(glStates->modelPos, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
     glEnableVertexAttribArray(glStates->modelPos);
 
-    glUniform1i(glStates->skyboxTex, 3);
-	glActiveTexture(GL_TEXTURE3);
+    glUniform1i(glStates->skyboxTex, 4);
+	glActiveTexture(GL_TEXTURE4);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapID);
 
 	glDrawArrays(GL_TRIANGLES, 0, 36);

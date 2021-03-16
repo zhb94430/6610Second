@@ -1,11 +1,11 @@
-#ifndef GL_RENDER_BUFFER_H
-#define GL_RENDER_BUFFER_H
+#ifndef GL_DEPTH_BUFFER_H
+#define GL_DEPTH_BUFFER_H
 
 //
-//  GLRenderBuffer.h
+//  GLDepthBuffer.h
 //  CS6610
 //  
-//  Class for render buffer
+//  Class for depth buffer for shadow map
 //  
 //  Record the GL buffer references
 //  and make draw calls on the scene
@@ -24,11 +24,11 @@
 #include "GLStates.h"
 #include "Camera.h"
 
-class GLRenderBuffer
+class GLDepthBuffer
 {
 public:
-	GLRenderBuffer();
-	GLRenderBuffer(GLStates* _glStates);
+	GLDepthBuffer();
+	GLDepthBuffer(GLStates* _glStates);
 
 	void Bind();
 	void Unbind();
@@ -51,7 +51,7 @@ public:
 	GLint prevViewport[4];
 };
 
-GLRenderBuffer::GLRenderBuffer()
+GLDepthBuffer::GLDepthBuffer()
 {
 	width = 1024;
 	height = 1024;
@@ -60,7 +60,7 @@ GLRenderBuffer::GLRenderBuffer()
 	depthBufferID = 0;
 }
 
-GLRenderBuffer::GLRenderBuffer(GLStates* _glStates) : GLRenderBuffer()
+GLDepthBuffer::GLDepthBuffer(GLStates* _glStates) : GLDepthBuffer()
 {
 	glStates = _glStates;
 
@@ -104,7 +104,7 @@ GLRenderBuffer::GLRenderBuffer(GLStates* _glStates) : GLRenderBuffer()
     Unbind();
 }
 
-void GLRenderBuffer::Bind()
+void GLDepthBuffer::Bind()
 {
 	glGetIntegerv(GL_VIEWPORT, prevViewport);
 	glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &prevBufferID);
@@ -112,11 +112,11 @@ void GLRenderBuffer::Bind()
 	glViewport(0,0, width, height);
 }
 
-void GLRenderBuffer::Unbind()
+void GLDepthBuffer::Unbind()
 {
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prevBufferID);
 	glViewport(prevViewport[0],prevViewport[1],prevViewport[2],prevViewport[3]);
 }
 
 
-#endif // GL_RENDER_BUFFER_H
+#endif // GL_DEPTH_BUFFER_H

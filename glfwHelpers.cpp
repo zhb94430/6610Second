@@ -27,6 +27,7 @@ extern GLStates glStates;
 extern Camera firstCam;
 extern Camera mainCam;
 extern Camera mirrorCam;
+extern Camera lightCam;
 extern Light l;
 
 GLFWwindow* window;
@@ -120,6 +121,13 @@ static void cursor_position_callback(GLFWwindow* window, double xpos, double ypo
             double scale = 1.0 + distSensitivity * y_delta;
             firstCam.pos = firstCam.lookAt + lookAt2Pos * scale;
         }
+        else if (CTL_PRESSED)
+        {
+            auto lookAt2Pos = lightCam.pos - lightCam.lookAt;
+            double scale = 1.0 + distSensitivity * y_delta;
+            lightCam.pos = lightCam.lookAt + lookAt2Pos * scale;
+            l.pos = lightCam.pos;
+        }
         else
         {
             auto lookAt2Pos = mainCam.pos - mainCam.lookAt;
@@ -140,6 +148,7 @@ static void cursor_position_callback(GLFWwindow* window, double xpos, double ypo
             auto yRot = cyMatrix3f::RotationY(x_delta * lightAngleSensitivity);
 
             l.pos = xRot * yRot * l.pos; 
+            lightCam.pos = l.pos;
         }
         else if (ALT_PRESSED)
         {

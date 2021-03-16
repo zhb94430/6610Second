@@ -3,8 +3,10 @@
 struct Light 
 {
     vec3 pos;
+    vec3 dir;
     vec3 color;
     float power;
+    float cutoff;
 };
 
 // Material
@@ -28,11 +30,13 @@ uniform samplerCube skyboxTex;
 uniform sampler2D b_texAmbient;
 uniform sampler2D b_texDiffuse;
 uniform sampler2D b_texSpecular;
+uniform sampler2D shadowMap;
 
 in vec3 worldPos;
 in vec3 worldNor;
 in vec2 worldUV;
 in vec3 skyboxUV;
+in vec4 shadowPos;
 
 out vec3 outputColor;
 
@@ -47,8 +51,13 @@ void main()
     float cosTheta = clamp(dot(worldPos, lightDirection), 0, 1);
     float cosAlpha = clamp(dot(cameraDirection, reflecDirection), 0, 1);
 
-    // outputColor = l.color;
-    // outputColor = worldNor;
+    float shadowThreshold = 1.0;
+    float shadowBias = 0.005;
+
+    if (texture(shadowMap, shadowPos.xy/shadowPos.w).z < (shadowPos.z - shadowBias)/shadowPos.w)
+    {
+        shadowThreshold = 0.4;
+    }
     
     if (b.sampleMirror == 1)
     {
@@ -59,29 +68,30 @@ void main()
     }
     else
     {
-        outputColor = 
+        // Check for spot light 
+        float spotLightTheta = dot(lightDirection, normalize(-l.dir));
+
+        if (spotLightTheta > l.cutoff)
+        {
+            outputColor = 
             b.ambient * texture(b_texAmbient, worldUV).rgb + 
-            b.diffuse * texture(b_texDiffuse, worldUV).rgb * l.color * l.power * cosTheta / (lightDistance * lightDistance) +
-            b.specular * texture(b_texSpecular, worldUV).rgb * l.color * l.power * pow(cosAlpha, 5) / (lightDistance * lightDistance) +
-            b.specularReflection * texture(skyboxTex, camReflecDirection).rgb + 
+            b.diffuse * shadowThreshold * texture(b_texDiffuse, worldUV).rgb * l.color * l.power * cosTheta +
+            b.specular * shadowThreshold * texture(b_texSpecular, worldUV).rgb * l.color * l.power * pow(cosAlpha, 5) +
+            b.specularReflection * shadowThreshold * texture(skyboxTex, camReflecDirection).rgb + 
             skyboxValue * texture(skyboxTex, skyboxUV).rgb;
+        }
+        else
+        {
+            outputColor = b.ambient * texture(b_texAmbient, worldUV).rgb;
+        }
+
+        // outputColor = 
+        //     b.ambient * texture(b_texAmbient, worldUV).rgb + 
+        //     b.diffuse * shadowThreshold * texture(b_texDiffuse, worldUV).rgb * l.color * l.power * cosTheta / (lightDistance * lightDistance) +
+        //     b.specular * shadowThreshold * texture(b_texSpecular, worldUV).rgb * l.color * l.power * pow(cosAlpha, 5) / (lightDistance * lightDistance) +
+        //     b.specularReflection * shadowThreshold * texture(skyboxTex, camReflecDirection).rgb + 
+        //     skyboxValue * texture(skyboxTex, skyboxUV).rgb;
+
+        // outputColor = vec3(shadowThreshold, 0.0, 0.0);
     }
-    // if (skyboxValue != 0)
-    // {
-    //     outputColor = skyboxValue * texture(skyboxTex, skyboxUV).rgb;
-    //     // outputColor = vec3(1.0, 0.0, 0.0);
-    // }
-    // else
-    // {
-    //     outputColor = b.ambient * texture(b_texAmbient, worldUV).rgb + 
-    //                   b.diffuse * texture(b_texDiffuse, worldUV).rgb * l.color * l.power * cosTheta / (lightDistance * lightDistance) +
-    //                   b.specular * texture(b_texSpecular, worldUV).rgb * l.color * l.power * pow(cosAlpha, 5) / (lightDistance * lightDistance);
-
-    //     // outputColor = b.ambient + 
-    //     //               b.diffuse * l.color * l.power * cosTheta / (lightDistance * lightDistance) +
-    //     //               b.specular * l.color * l.power * pow(cosAlpha, 5) / (lightDistance * lightDistance);
-
-    //     // outputColor = vec3(1.0, 0.0, 0.0);
-    //     // outputColor = l.color;
-    // }    
 }
