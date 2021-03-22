@@ -127,6 +127,7 @@ static void cursor_position_callback(GLFWwindow* window, double xpos, double ypo
             double scale = 1.0 + distSensitivity * y_delta;
             lightCam.pos = lightCam.lookAt + lookAt2Pos * scale;
             l.pos = lightCam.pos;
+            l.update();
         }
         else
         {
@@ -149,6 +150,7 @@ static void cursor_position_callback(GLFWwindow* window, double xpos, double ypo
 
             l.pos = xRot * yRot * l.pos; 
             lightCam.pos = l.pos;
+            l.update();
         }
         else if (ALT_PRESSED)
         {

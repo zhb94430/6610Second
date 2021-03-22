@@ -25,27 +25,31 @@ struct Camera
 	cyPoint3f lookAt;
 	cyPoint3f up;
 	float fov;
+	float renderRatio; // Viewport Width/Height
 };
 
 Camera firstCam = {
 		    .up = cyPoint3f(0, 1, 0),
 		  	.pos = cyPoint3f(10, 10, 0),
 		  	.lookAt = cyPoint3f(0, 0, 0),
-		  	.fov = 1.13446 // 65 Degrees
+		  	.fov = 1.13446, // 65 Degrees
+		  	.renderRatio = 800.0/600.0 
 		  };
 
 Camera mainCam = {
 			.up = cyPoint3f(0, 1, 0),
 			.pos = cyPoint3f(10, 10, 0),
 			.lookAt = cyPoint3f(0, 0, 0),
-			.fov = 1.13446 // 65 Degrees
+			.fov = 1.13446,
+			.renderRatio = 800.0/600.0 // 65 Degrees
 };
 
 Camera mirrorCam = {
 			.up = mainCam.up,
 			.pos = cyPoint3f(mainCam.pos[0], -mainCam.pos[1], mainCam.pos[2]),
 			.lookAt = mainCam.lookAt,
-			.fov = mainCam.fov
+			.fov = mainCam.fov,
+			.renderRatio = 1024.0/1024.0
 };
 
 extern Light l;
@@ -54,7 +58,8 @@ Camera lightCam = {
 			.up = cyPoint3f(0, 1, 0),
 			.pos = cyPoint3f(l.pos[0], l.pos[1], l.pos[2]),
 			.lookAt = cyPoint3f(0, 0, 0),
-			.fov = 0.7853982 // 45 Degrees
+			.fov = 0.7853982, // 45 Degrees
+			.renderRatio = 1024.0/1024.0
 };
 
 #endif // CAMERA_H

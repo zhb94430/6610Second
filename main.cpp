@@ -92,6 +92,8 @@ int main(int argc, char* argv[])
 
     GLMesh quadMesh("./quad.obj", &glStates, cyMatrix4f::Scale(10), &mirrorBuffer);
     GLMesh lightMesh("./light/light.obj", &glStates, cyMatrix4f::Translation(l.pos));
+    l.mesh = &lightMesh;
+    l.update();
 
     // Scene mirrorScene;
     // mirrorScene.l = &l;
@@ -103,7 +105,7 @@ int main(int argc, char* argv[])
     shadowScene.l = &l;
     shadowScene.cam = &lightCam;
     shadowScene.sky = NULL;
-    shadowScene.meshList.push_back(mainMesh);
+    shadowScene.meshList.push_back(&mainMesh);
 
     // Scene firstScene;
     // firstScene.l = &l;
@@ -115,9 +117,10 @@ int main(int argc, char* argv[])
     secondScene.l = &l;
     secondScene.cam = &mainCam;
     secondScene.sky = &sky;
-    secondScene.meshList.push_back(quadMesh);
-    secondScene.meshList.push_back(mainMesh);
-    // secondScene.meshList.push_back(lightMesh);
+    // secondScene.sky = NULL;
+    secondScene.meshList.push_back(&quadMesh);
+    secondScene.meshList.push_back(&mainMesh);
+    secondScene.meshList.push_back(&lightMesh);
 
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.3, 0.3, 0.3, 1.0);
@@ -142,13 +145,8 @@ int main(int argc, char* argv[])
 
 		// DrawSceneToDepthBuffer(&shadowScene, &shadowBuffer, &glShadowStates);
 		DrawSceneToBuffer(&shadowScene, &mirrorBuffer, &glShadowStates);
-    	
-		// Temporary code to bind the shadow buffer
-		glUniform1i(glStates.shadowMap, 5);
-		glActiveTexture(GL_TEXTURE5);
-		glBindTexture(GL_TEXTURE_2D, mirrorBuffer.textureID);
 
-    	DrawScene(&secondScene, &glStates);
+    	DrawScene(&secondScene, &glStates, &mirrorBuffer);
     	// DrawScene(&secondScene, &glStates);
     	
 

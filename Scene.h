@@ -25,7 +25,7 @@
 
 struct Scene
 {
-	std::vector<GLMesh> meshList;
+	std::vector<GLMesh*> meshList;
 	Light* l;
 	Camera* cam;
 	Skybox* sky;
@@ -34,7 +34,7 @@ struct Scene
 extern Camera lightCam;
 
 // Draw one frame of the scene to current GL configuration
-void DrawScene(Scene* scene, GLStates* glStates)
+void DrawScene(Scene* scene, GLStates* glStates, GLRenderBuffer* shadowBuffer=NULL)
 {
 	glUseProgram(glStates->program);
 	glStates->queryVariableLocations();
@@ -44,19 +44,13 @@ void DrawScene(Scene* scene, GLStates* glStates)
 	scene->l->sendTo(glStates);
 
 	// MVP Matrix
-	auto Projection = cyMatrix4f::Perspective(scene->cam->fov, 800.0/600.0, 0.5, 50.0);
+	auto Projection = cyMatrix4f::Perspective(scene->cam->fov, scene->cam->renderRatio, 0.5, 50.0);
 	auto View = cyMatrix4f::View(scene->cam->pos, scene->cam->lookAt, scene->cam->up);
-	
-	// auto shadowMapConversion = cyMatrix4f(
-	// 						   0.5, 0.0, 0.0, 0.0,
-	// 						   0.0, 0.5, 0.0, 0.0,
-	// 						   0.0, 0.0, 0.5, 0.0,
-	// 						   0.5, 0.5, 0.5, 1.0);
 
 	auto shadowMapConversion = cyMatrix4f::Translation(cyVec3f(0.5, 0.5, 0.5)) *
 							   cyMatrix4f::Scale(0.5);
 
-	auto shadowProjection = cyMatrix4f::Perspective(lightCam.fov, 800.0/600.0, 0.5, 50.0); // Temp workaround to get light matrices
+	auto shadowProjection = cyMatrix4f::Perspective(lightCam.fov, lightCam.renderRatio, 0.5, 50.0); // Temp workaround to get light matrices
 	auto shadowView = cyMatrix4f::View(lightCam.pos, lightCam.lookAt, lightCam.up);
 
 	if (scene->sky != NULL)
@@ -70,10 +64,16 @@ void DrawScene(Scene* scene, GLStates* glStates)
 
 		scene->sky->Draw();
 	}
+	else
+	{
+		glUniform1i(glStates->skyboxTex, 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, glStates->emptyTexID);
+	}
 	
 	for (int i = 0; i < scene->meshList.size(); ++i)
 	{
-		auto currentMesh = &scene->meshList[i];
+		auto currentMesh = scene->meshList[i];
 
 		auto Model = currentMesh->modelMatrix;
 		auto MVP = Projection * View * Model;
@@ -84,6 +84,13 @@ void DrawScene(Scene* scene, GLStates* glStates)
 		glUniformMatrix4fv(glStates->M, 1, GL_FALSE, (const GLfloat*) &Model);
 		glUniformMatrix4fv(glStates->shadowMVP, 1, GL_FALSE, (const GLfloat*) &shadowMVP);
 
+		if (shadowBuffer)
+		{
+			glUniform1i(glStates->shadowMap, 5);
+			glActiveTexture(GL_TEXTURE5);
+			glBindTexture(GL_TEXTURE_2D, shadowBuffer->textureID);
+		}
+		
 		currentMesh->Draw();
 	}
 }
@@ -107,7 +114,7 @@ void DrawSceneToBuffer(Scene* scene, GLRenderBuffer* buffer, GLStates* glStates)
 	buffer->Unbind();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	// glClearColor(0.4, 0.4, 0.4, 1.0);
-	glClearColor(1.0, 1.0, 1.0, 1.0); 
+	glClearColor(0.3, 0.3, 0.3, 1.0); 
 }
 
 // Is this really necessary?

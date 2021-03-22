@@ -18,8 +18,10 @@
 #include <GLFW/glfw3.h>
 #include <cyVector.h>
 #include <cyPoint.h>
+#include <cyMatrix.h>
 
 #include "GLStates.h"
+#include "GLMesh.h"
 
 struct Light 
 {
@@ -29,6 +31,8 @@ struct Light
     float power;
     float cutoff; // cos of Half of shadow camera fov
 
+    GLMesh* mesh;
+
     void sendTo(GLStates* glStates)
     {
     	glUniform3fv(glStates->l_pos, 1, (const GLfloat*) &pos);
@@ -37,11 +41,19 @@ struct Light
     	glUniform1fv(glStates->l_power, 1, (const GLfloat*) &power);
     	glUniform1fv(glStates->l_cutoff, 1, (const GLfloat*) &cutoff);
     }
+
+    void update()
+    {
+    	dir = cyVec3f(0.0, 0.0, 0.0) - pos;
+    	dir = Normalize(dir);
+    	mesh->modelMatrix = cyMatrix4f::Translation(pos) *
+    						cyMatrix4f::Rotation(cyVec3f(0.0, 0.0, -1.0), dir);
+    }
 };
 
 // Light l = { cyPoint3f(0.0, 12.0, 7.5), cyVec3f(1.0, 1.0, 1.0), 100.0 };
-Light l = { cyPoint3f(0.0, 20, 20), 
-			cyVec3f(0.0, -1.0, -1.0), 
-			cyVec3f(1.0, 1.0, 1.0), 10, 0.9238795255};
+Light l = { cyPoint3f(0.0, 10, 10), 
+			cyVec3f(0.0, 0.0, -1.0), 
+			cyVec3f(1.0, 1.0, 1.0), 100, 0.9238795255, NULL};
 
 #endif // LIGHT_H
