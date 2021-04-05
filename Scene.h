@@ -37,6 +37,7 @@ extern Camera lightCam;
 void DrawScene(Scene* scene, GLStates* glStates, GLRenderBuffer* shadowBuffer=NULL)
 {
 	glUseProgram(glStates->program);
+	// glStates->queryTriangulateVariableLocations();
 	glStates->queryVariableLocations();
 
 	// Send to GL
@@ -76,11 +77,13 @@ void DrawScene(Scene* scene, GLStates* glStates, GLRenderBuffer* shadowBuffer=NU
 		auto currentMesh = scene->meshList[i];
 
 		auto Model = currentMesh->modelMatrix;
+		auto VP = Projection * View;
 		auto MVP = Projection * View * Model;
 		auto shadowMVP = shadowMapConversion * shadowProjection * shadowView * Model;
 
 		//Set Attributes
 		glUniformMatrix4fv(glStates->MVP, 1, GL_FALSE, (const GLfloat*) &MVP);
+		glUniformMatrix4fv(glStates->VP, 1, GL_FALSE, (const GLfloat*) &VP);
 		glUniformMatrix4fv(glStates->M, 1, GL_FALSE, (const GLfloat*) &Model);
 		glUniformMatrix4fv(glStates->shadowMVP, 1, GL_FALSE, (const GLfloat*) &shadowMVP);
 
@@ -89,6 +92,12 @@ void DrawScene(Scene* scene, GLStates* glStates, GLRenderBuffer* shadowBuffer=NU
 			glUniform1i(glStates->shadowMap, 5);
 			glActiveTexture(GL_TEXTURE5);
 			glBindTexture(GL_TEXTURE_2D, shadowBuffer->textureID);
+		}
+		else
+		{
+			glUniform1i(glStates->shadowMap, 0);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, glStates->emptyTexID);
 		}
 		
 		currentMesh->Draw();

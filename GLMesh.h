@@ -262,6 +262,19 @@ void GLMesh::Load(std::string filePath, GLRenderBuffer* renderBuffer)
 	            							&currentMaterial.texSpecular);
 	        }
 
+	        // Using map_Ns as normal map in this case
+	        if (currentTriMtl.map_Ns)
+	        {
+	        	currentMaterial.LoadTexture(processedPath + "/" + std::string(currentTriMtl.map_Ns.data),
+	            							&currentMaterial.texNormal);
+	        }
+
+	        if (currentTriMtl.map_disp)
+	        {
+	        	currentMaterial.LoadTexture(processedPath + "/" + std::string(currentTriMtl.map_disp.data),
+	            							&currentMaterial.texDisplacement);
+	        }
+
 	        materials.push_back(currentMaterial);
 	        vertexCount += currentMaterial.numberOfVertices;
 	    }    
@@ -287,7 +300,8 @@ void GLMesh::Draw()
 	{
 		materials[i].sendTo(glStates);
 
-		glDrawArrays(GL_TRIANGLES, materials[i].startIndex, materials[i].numberOfVertices);
+		// glDrawArrays(GL_TRIANGLES, materials[i].startIndex, materials[i].numberOfVertices);
+		glDrawArrays(GL_PATCHES, materials[i].startIndex, materials[i].numberOfVertices);
 	}
 
 

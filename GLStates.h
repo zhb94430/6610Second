@@ -35,6 +35,12 @@ struct GLStates
 	GLuint modelNor = 0;
 	GLuint modelUV = 0;
 
+	// TessCtlShader
+	GLuint tessLevel = 0;
+	GLuint VP = 0;
+	GLuint b_texDisplacement = 0;
+	GLuint displacementScale = 0;
+
 	// Fragment Shader
 	// Camera
 	GLuint cameraPos = 0;
@@ -54,6 +60,8 @@ struct GLStates
 	GLuint b_texAmbient = 0;
 	GLuint b_texDiffuse = 0;
 	GLuint b_texSpecular = 0;
+	GLuint b_texNormal = 0;
+
 	GLuint b_sampleMirror = 0;
 
 	// Skybox
@@ -61,6 +69,8 @@ struct GLStates
 	GLuint skyboxTex = 0;
 
 	GLuint shadowMap = 0;
+
+
 
 	void queryVariableLocations()
 	{
@@ -86,6 +96,7 @@ struct GLStates
 	    b_texAmbient = glGetUniformLocation(program, "b_texAmbient");
 	    b_texDiffuse = glGetUniformLocation(program, "b_texDiffuse");
 	    b_texSpecular = glGetUniformLocation(program, "b_texSpecular");
+	    b_texNormal = glGetUniformLocation(program, "b_texNormal");
 	    b_sampleMirror = glGetUniformLocation(program, "b.sampleMirror");
 
 	    skyboxValue = glGetUniformLocation(program, "skyboxValue");
@@ -98,6 +109,34 @@ struct GLStates
 	{
 		MVP = glGetUniformLocation(program, "MVP");
 		modelPos = glGetAttribLocation(program, "modelPos");
+	}
+
+	void queryTriangulateVariableLocations()
+	{
+		MVP = glGetUniformLocation(program, "MVP");
+		modelPos = glGetAttribLocation(program, "modelPos");
+		cameraPos = glGetUniformLocation(program, "cameraPos");
+	}
+
+	void queryTessVariableLocations()
+	{
+		tessLevel = glGetUniformLocation(program, "tessLevel");
+		VP = glGetUniformLocation(program, "VP");
+		b_texDisplacement = glGetUniformLocation(program, "b_texDisplacement");
+		displacementScale = glGetUniformLocation(program, "displacementScale");
+	}
+
+	void queryP6VariableLocations()
+	{
+		queryTessVariableLocations();
+		// queryTriangulateVariableLocations();
+		queryVariableLocations();
+	}
+
+	// Enable current GL Program
+	void enable()
+	{
+		glUseProgram(program);
 	}
 
 	// Generate empty texture to feed the texture unit when not in use
@@ -122,6 +161,7 @@ struct GLStates
 
 GLStates glStates;
 GLStates glShadowStates;
+GLStates glStates_Triangulate;
 
 GLuint LoadShader(GLenum shaderType, std::string path)
 {
@@ -168,41 +208,113 @@ GLuint LoadShader(GLenum shaderType, std::string path)
 
 // Load & Compile Shaders
 // Obtain GLuint locations for all shader attributes
+// void loadProgram(GLStates* glStates)
+// {
+// 	// Main Shader
+// 	auto vertexShader = LoadShader(GL_VERTEX_SHADER, std::string("./VertexShader.glsl"));
+//     auto fragShader = LoadShader(GL_FRAGMENT_SHADER, std::string("./FragShader.glsl"));
+    
+//     // Program
+//     glStates->program = glCreateProgram();
+//     glAttachShader(glStates->program, vertexShader);
+//     glAttachShader(glStates->program, fragShader);
+//     glLinkProgram(glStates->program);
+//     glUseProgram(glStates->program);
+
+//     // Store Variable References
+//     glStates->queryVariableLocations();
+// }
+
+void checkLinkerError(GLuint programID)
+{
+
+	// Error Check
+    GLint programLinked = GL_FALSE;
+    glGetProgramiv( programID, GL_LINK_STATUS, &programLinked);
+    
+    if (programLinked != GL_TRUE) {
+        printf("Unable to link program, rendering behavior undefined %d\n", programID);
+        
+        GLint maxLength = 0;
+        glGetProgramiv(programID, GL_INFO_LOG_LENGTH, &maxLength);
+        
+        // The maxLength includes the NULL character
+        std::vector<GLchar> errorLog(maxLength);
+        glGetProgramInfoLog(programID, maxLength, &maxLength, &errorLog[0]);
+        
+        for (int i = 0; i < errorLog.size(); i++) {
+            std::cout << errorLog[i];
+        }
+    }
+}
+
 void loadProgram(GLStates* glStates)
 {
-	// Main Shader
-	auto vertexShader = LoadShader(GL_VERTEX_SHADER, std::string("./VertexShader.glsl"));
-    auto fragShader = LoadShader(GL_FRAGMENT_SHADER, std::string("./FragShader.glsl"));
-    
+	// auto vertexShader = LoadShader(GL_VERTEX_SHADER, std::string("./VertexShader.glsl"));
+
+	auto vertexShader = LoadShader(GL_VERTEX_SHADER, std::string("./TessVertexShader.glsl"));
+	auto tessCtlShader = LoadShader(GL_TESS_CONTROL_SHADER, std::string("./TessCtlShader.glsl"));
+	auto tessEvalShader = LoadShader(GL_TESS_EVALUATION_SHADER, std::string("./TessEvalShader.glsl"));
+	
+	// auto geometryShader = LoadShader(GL_GEOMETRY_SHADER, std::string("./GeometryShader.glsl"));
+    // auto fragShader = LoadShader(GL_FRAGMENT_SHADER, std::string("./FragShader.glsl"));
+    auto fragShader = LoadShader(GL_FRAGMENT_SHADER, std::string("./TessFragShader.glsl"));
+
     // Program
     glStates->program = glCreateProgram();
     glAttachShader(glStates->program, vertexShader);
+    glAttachShader(glStates->program, tessCtlShader);
+    glAttachShader(glStates->program, tessEvalShader);
+    // glAttachShader(glStates->program, geometryShader);
     glAttachShader(glStates->program, fragShader);
     glLinkProgram(glStates->program);
+
+    checkLinkerError(glStates->program);
+
     glUseProgram(glStates->program);
 
-    // Store Variable References
-    glStates->queryVariableLocations();
+    // glStates->queryVariableLocations();
+    glStates->queryP6VariableLocations();
 }
 
 // Temporary workaround for shadow shaders
-void loadShadowProgram(GLStates* glShadowStates)
+void loadShadowProgram(GLStates* glStates)
 {
 	// Main Shader
 	auto vertexShader = LoadShader(GL_VERTEX_SHADER, std::string("./ShadowVertexShader.glsl"));
     auto fragShader = LoadShader(GL_FRAGMENT_SHADER, std::string("./ShadowFragShader.glsl"));
     
     // Program
-    glShadowStates->program = glCreateProgram();
-    glAttachShader(glShadowStates->program, vertexShader);
-    glAttachShader(glShadowStates->program, fragShader);
-    glLinkProgram(glShadowStates->program);
-    glUseProgram(glShadowStates->program);
+    glStates->program = glCreateProgram();
+    glAttachShader(glStates->program, vertexShader);
+    glAttachShader(glStates->program, fragShader);
+    glLinkProgram(glStates->program);
+
+	checkLinkerError(glStates->program);
+
+    glUseProgram(glStates->program);
 
     // Store Variable References
-    glShadowStates->queryShadowVariableLocations();
+    glStates->queryShadowVariableLocations();
 }
 
+void loadTriangulateProgram(GLStates* glStates)
+{
+	auto vertexShader = LoadShader(GL_VERTEX_SHADER, std::string("./GeoVertexShader.glsl"));
+	auto geometryShader = LoadShader(GL_GEOMETRY_SHADER, std::string("./GeometryShader.glsl"));
+    auto fragShader = LoadShader(GL_FRAGMENT_SHADER, std::string("./GeoFragShader.glsl"));
 
+    glStates->program = glCreateProgram();
+    glAttachShader(glStates->program, vertexShader);
+    glAttachShader(glStates->program, geometryShader);
+    glAttachShader(glStates->program, fragShader);
+    glLinkProgram(glStates->program);
+
+    checkLinkerError(glStates->program);
+
+    glUseProgram(glStates->program);
+
+    glStates->queryTriangulateVariableLocations();
+}
 
 #endif // GL_STATES_H

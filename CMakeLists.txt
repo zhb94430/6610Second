@@ -34,9 +34,36 @@ add_custom_command(
                 ${CMAKE_SOURCE_DIR}/ShadowVertexShader.glsl
                 ${CMAKE_CURRENT_BINARY_DIR}/ShadowVertexShader.glsl
         COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_SOURCE_DIR}/GeometryShader.glsl
+                ${CMAKE_CURRENT_BINARY_DIR}/GeometryShader.glsl
+            COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_SOURCE_DIR}/GeoFragShader.glsl
+                ${CMAKE_CURRENT_BINARY_DIR}/GeoFragShader.glsl
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_SOURCE_DIR}/GeoVertexShader.glsl
+                ${CMAKE_CURRENT_BINARY_DIR}/GeoVertexShader.glsl
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_SOURCE_DIR}/TessVertexShader.glsl
+                ${CMAKE_CURRENT_BINARY_DIR}/TessVertexShader.glsl
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_SOURCE_DIR}/TessCtlShader.glsl
+                ${CMAKE_CURRENT_BINARY_DIR}/TessCtlShader.glsl
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_SOURCE_DIR}/TessEvalShader.glsl
+                ${CMAKE_CURRENT_BINARY_DIR}/TessEvalShader.glsl
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_SOURCE_DIR}/TessFragShader.glsl
+                ${CMAKE_CURRENT_BINARY_DIR}/TessFragShader.glsl
+        COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_SOURCE_DIR}/teapot.obj
                 ${CMAKE_CURRENT_BINARY_DIR}/teapot.obj
-                COMMAND ${CMAKE_COMMAND} -E copy
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_SOURCE_DIR}/teapot_disp.png
+                ${CMAKE_CURRENT_BINARY_DIR}/teapot_disp.png
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_SOURCE_DIR}/teapot_normal.png
+                ${CMAKE_CURRENT_BINARY_DIR}/teapot_normal.png
+        COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_SOURCE_DIR}/sphere.obj
                 ${CMAKE_CURRENT_BINARY_DIR}/sphere.obj
         COMMAND ${CMAKE_COMMAND} -E copy

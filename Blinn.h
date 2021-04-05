@@ -31,6 +31,8 @@ struct Blinn
     GLuint texAmbient;
     GLuint texDiffuse;
     GLuint texSpecular;
+    GLuint texNormal;
+    GLuint texDisplacement;
 
     Blinn()
     {
@@ -46,6 +48,7 @@ struct Blinn
 	    texAmbient = 0;
 	    texDiffuse = 0;
 	    texSpecular = 0;
+	    texNormal = 0;
     }
 
     // Helper function that loads the texture for the material
@@ -88,6 +91,8 @@ struct Blinn
     	glUniform1i(glStates->b_texAmbient, 0);
     	glUniform1i(glStates->b_texDiffuse, 0);
     	glUniform1i(glStates->b_texSpecular, 0);
+    	glUniform1i(glStates->b_texNormal, 0);
+    	glUniform1i(glStates->b_texDisplacement, 0);
     	glActiveTexture(GL_TEXTURE0);
     	glBindTexture(GL_TEXTURE_2D, glStates->emptyTexID);
 
@@ -111,6 +116,20 @@ struct Blinn
     		glUniform1i(glStates->b_texSpecular, 3);
     		glActiveTexture(GL_TEXTURE3);
 	        glBindTexture(GL_TEXTURE_2D, texSpecular);
+	        glGenerateMipmap(GL_TEXTURE_2D);
+    	}
+    	if (texNormal > 0)
+    	{
+    		glUniform1i(glStates->b_texNormal, 6);
+    		glActiveTexture(GL_TEXTURE6);
+	        glBindTexture(GL_TEXTURE_2D, texNormal);
+	        glGenerateMipmap(GL_TEXTURE_2D);
+    	}
+    	if (texDisplacement > 0)
+    	{
+    		glUniform1i(glStates->b_texDisplacement, 7);
+    		glActiveTexture(GL_TEXTURE7);
+	        glBindTexture(GL_TEXTURE_2D, texDisplacement);
 	        glGenerateMipmap(GL_TEXTURE_2D);
     	}
     }
