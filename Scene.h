@@ -32,17 +32,17 @@ struct Scene
 };
 
 extern Camera lightCam;
+extern float tessLevel;
 
 // Draw one frame of the scene to current GL configuration
 void DrawScene(Scene* scene, GLStates* glStates, GLRenderBuffer* shadowBuffer=NULL)
 {
 	glUseProgram(glStates->program);
-	// glStates->queryTriangulateVariableLocations();
-	glStates->queryVariableLocations();
 
 	// Send to GL
 	glUniform3fv(glStates->cameraPos, 1, (const GLfloat*) &scene->cam->pos);
 	scene->l->sendTo(glStates);
+	glUniform1f(glStates->tessLevel, tessLevel);
 
 	// MVP Matrix
 	auto Projection = cyMatrix4f::Perspective(scene->cam->fov, scene->cam->renderRatio, 0.5, 50.0);
@@ -53,24 +53,6 @@ void DrawScene(Scene* scene, GLStates* glStates, GLRenderBuffer* shadowBuffer=NU
 
 	auto shadowProjection = cyMatrix4f::Perspective(lightCam.fov, lightCam.renderRatio, 0.5, 50.0); // Temp workaround to get light matrices
 	auto shadowView = cyMatrix4f::View(lightCam.pos, lightCam.lookAt, lightCam.up);
-
-	if (scene->sky != NULL)
-	{
-		// Skybox attributes
-		auto SkyModel = cyMatrix4f::Translation(scene->cam->pos);
-		auto SkyMVP = Projection * View * SkyModel;
-
-		glUniformMatrix4fv(glStates->MVP, 1, GL_FALSE, (const GLfloat*) &SkyMVP);
-		glUniformMatrix4fv(glStates->M, 1, GL_FALSE, (const GLfloat*) &SkyModel);
-
-		scene->sky->Draw();
-	}
-	else
-	{
-		glUniform1i(glStates->skyboxTex, 0);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, glStates->emptyTexID);
-	}
 	
 	for (int i = 0; i < scene->meshList.size(); ++i)
 	{
@@ -108,7 +90,7 @@ void DrawScene(Scene* scene, GLStates* glStates, GLRenderBuffer* shadowBuffer=NU
 void DrawSceneToBuffer(Scene* scene, GLRenderBuffer* buffer, GLStates* glStates)
 {
 	glUseProgram(glStates->program);
-	glStates->queryVariableLocations();
+	// glStates->queryVariableLocations();
 
 	// Bind Stuff
 	buffer->Bind();

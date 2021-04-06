@@ -109,6 +109,8 @@ struct GLStates
 	{
 		MVP = glGetUniformLocation(program, "MVP");
 		modelPos = glGetAttribLocation(program, "modelPos");
+
+		queryTessVariableLocations();
 	}
 
 	void queryTriangulateVariableLocations()
@@ -206,25 +208,6 @@ GLuint LoadShader(GLenum shaderType, std::string path)
     return shaderID;
 }
 
-// Load & Compile Shaders
-// Obtain GLuint locations for all shader attributes
-// void loadProgram(GLStates* glStates)
-// {
-// 	// Main Shader
-// 	auto vertexShader = LoadShader(GL_VERTEX_SHADER, std::string("./VertexShader.glsl"));
-//     auto fragShader = LoadShader(GL_FRAGMENT_SHADER, std::string("./FragShader.glsl"));
-    
-//     // Program
-//     glStates->program = glCreateProgram();
-//     glAttachShader(glStates->program, vertexShader);
-//     glAttachShader(glStates->program, fragShader);
-//     glLinkProgram(glStates->program);
-//     glUseProgram(glStates->program);
-
-//     // Store Variable References
-//     glStates->queryVariableLocations();
-// }
-
 void checkLinkerError(GLuint programID)
 {
 
@@ -250,15 +233,16 @@ void checkLinkerError(GLuint programID)
 
 void loadProgram(GLStates* glStates)
 {
-	// auto vertexShader = LoadShader(GL_VERTEX_SHADER, std::string("./VertexShader.glsl"));
+	auto vertexShader = LoadShader(GL_VERTEX_SHADER, std::string("./VertexShader.glsl"));
 
-	auto vertexShader = LoadShader(GL_VERTEX_SHADER, std::string("./TessVertexShader.glsl"));
+	// auto vertexShader = LoadShader(GL_VERTEX_SHADER, std::string("./TessVertexShader.glsl"));
 	auto tessCtlShader = LoadShader(GL_TESS_CONTROL_SHADER, std::string("./TessCtlShader.glsl"));
 	auto tessEvalShader = LoadShader(GL_TESS_EVALUATION_SHADER, std::string("./TessEvalShader.glsl"));
 	
 	// auto geometryShader = LoadShader(GL_GEOMETRY_SHADER, std::string("./GeometryShader.glsl"));
-    // auto fragShader = LoadShader(GL_FRAGMENT_SHADER, std::string("./FragShader.glsl"));
-    auto fragShader = LoadShader(GL_FRAGMENT_SHADER, std::string("./TessFragShader.glsl"));
+    auto fragShader = LoadShader(GL_FRAGMENT_SHADER, std::string("./FragShader.glsl"));
+    // auto fragShader = LoadShader(GL_FRAGMENT_SHADER, std::string("./TessFragShader.glsl"));
+     // auto fragShader = LoadShader(GL_FRAGMENT_SHADER, std::string("./GeoFragShader.glsl"));
 
     // Program
     glStates->program = glCreateProgram();
@@ -281,12 +265,16 @@ void loadProgram(GLStates* glStates)
 void loadShadowProgram(GLStates* glStates)
 {
 	// Main Shader
-	auto vertexShader = LoadShader(GL_VERTEX_SHADER, std::string("./ShadowVertexShader.glsl"));
+	auto vertexShader = LoadShader(GL_VERTEX_SHADER, std::string("./VertexShader.glsl"));
+   	auto tessCtlShader = LoadShader(GL_TESS_CONTROL_SHADER, std::string("./TessCtlShader.glsl"));
+	auto tessEvalShader = LoadShader(GL_TESS_EVALUATION_SHADER, std::string("./TessEvalShader.glsl"));
     auto fragShader = LoadShader(GL_FRAGMENT_SHADER, std::string("./ShadowFragShader.glsl"));
     
     // Program
     glStates->program = glCreateProgram();
     glAttachShader(glStates->program, vertexShader);
+    glAttachShader(glStates->program, tessCtlShader);
+    glAttachShader(glStates->program, tessEvalShader);
     glAttachShader(glStates->program, fragShader);
     glLinkProgram(glStates->program);
 
@@ -300,12 +288,20 @@ void loadShadowProgram(GLStates* glStates)
 
 void loadTriangulateProgram(GLStates* glStates)
 {
-	auto vertexShader = LoadShader(GL_VERTEX_SHADER, std::string("./GeoVertexShader.glsl"));
+	// auto vertexShader = LoadShader(GL_VERTEX_SHADER, std::string("./GeoVertexShader.glsl"));
+	// auto geometryShader = LoadShader(GL_GEOMETRY_SHADER, std::string("./GeometryShader.glsl"));
+ //    auto fragShader = LoadShader(GL_FRAGMENT_SHADER, std::string("./GeoFragShader.glsl"));
+
+    auto vertexShader = LoadShader(GL_VERTEX_SHADER, std::string("./VertexShader.glsl"));
+    auto tessCtlShader = LoadShader(GL_TESS_CONTROL_SHADER, std::string("./TessCtlShader.glsl"));
+	auto tessEvalShader = LoadShader(GL_TESS_EVALUATION_SHADER, std::string("./TessEvalShader.glsl"));
 	auto geometryShader = LoadShader(GL_GEOMETRY_SHADER, std::string("./GeometryShader.glsl"));
     auto fragShader = LoadShader(GL_FRAGMENT_SHADER, std::string("./GeoFragShader.glsl"));
 
     glStates->program = glCreateProgram();
     glAttachShader(glStates->program, vertexShader);
+    glAttachShader(glStates->program, tessCtlShader);
+    glAttachShader(glStates->program, tessEvalShader);
     glAttachShader(glStates->program, geometryShader);
     glAttachShader(glStates->program, fragShader);
     glLinkProgram(glStates->program);
@@ -314,7 +310,8 @@ void loadTriangulateProgram(GLStates* glStates)
 
     glUseProgram(glStates->program);
 
-    glStates->queryTriangulateVariableLocations();
+    // glStates->queryTriangulateVariableLocations();
+    glStates->queryP6VariableLocations();
 }
 
 #endif // GL_STATES_H

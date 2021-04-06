@@ -2,6 +2,11 @@
 
 // out float fragmentDepth;
 
+in vec3 worldPos_Frag;
+in vec4 shadowPos_Frag;
+in vec3 worldNor_Frag;
+in vec2 worldUV_Frag;
+
 out vec3 color;
 
 void main()

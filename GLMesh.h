@@ -302,6 +302,7 @@ void GLMesh::Draw()
 
 		// glDrawArrays(GL_TRIANGLES, materials[i].startIndex, materials[i].numberOfVertices);
 		glDrawArrays(GL_PATCHES, materials[i].startIndex, materials[i].numberOfVertices);
+		// glDrawArrays(GL_PATCHES, materials[i].startIndex, 4);
 	}
 
 

@@ -24,20 +24,16 @@ uniform vec3 cameraPos;
 uniform Light l;
 uniform Blinn b;
 
-uniform float skyboxValue; // Multiplied when calculating final color
-uniform samplerCube skyboxTex;
-
 uniform sampler2D b_texAmbient;
 uniform sampler2D b_texDiffuse;
 uniform sampler2D b_texSpecular;
 uniform sampler2D b_texNormal;
 uniform sampler2D shadowMap;
 
-in vec3 worldPos;
-in vec3 worldNor;
-in vec2 worldUV;
-in vec3 skyboxUV;
-in vec4 shadowPos;
+in vec3 worldPos_Frag;
+in vec4 shadowPos_Frag;
+in vec3 worldNor_Frag;
+in vec2 worldUV_Frag;
 
 out vec3 outputColor;
 
@@ -45,16 +41,16 @@ void main()
 {
     // if normal map exists, use normal map value, else use supplied worldNormal
     ivec2 normalMapSize = textureSize(b_texNormal, 0);
-    vec3 worldNorProcessed = worldNor;
+    vec3 worldNorProcessed = worldNor_Frag;
 
     if (normalMapSize.x > 1 && normalMapSize.y > 1)
     {
-        worldNorProcessed = texture(b_texNormal, worldUV).xyz;
+        worldNorProcessed = texture(b_texNormal, worldUV_Frag).xyz;
     }
 
-    float lightDistance = length(l.pos - worldPos);
-    vec3 lightDirection = normalize(l.pos - worldPos);
-    vec3 cameraDirection = normalize(cameraPos - worldPos);
+    float lightDistance = length(l.pos - worldPos_Frag);
+    vec3 lightDirection = normalize(l.pos - worldPos_Frag);
+    vec3 cameraDirection = normalize(cameraPos - worldPos_Frag);
     vec3 reflecDirection = normalize(reflect(-lightDirection, worldNorProcessed));
     vec3 camReflecDirection = normalize(reflect(-cameraDirection, worldNorProcessed));
 
@@ -66,13 +62,13 @@ void main()
     float shadowBias = 0.004;
     // float shadowBias = clamp(0.005*tan(acos(cosTheta)), 0.001, 0.01);
 
-    // if (texture(shadowMap, shadowPos.xy/shadowPos.w).z < (shadowPos.z/shadowPos.w - shadowBias))
-    // {
-    //     // if (dot(lightDirection, worldNorProcessed) > 0)
-    //     // {
-    //         shadowThreshold = 0.01;    
-    //     // }
-    // }
+    if (texture(shadowMap, shadowPos_Frag.xy/shadowPos_Frag.w).z < (shadowPos_Frag.z/shadowPos_Frag.w - shadowBias))
+    {
+        // if (dot(lightDirection, worldNorProcessed) > 0)
+        // {
+            shadowThreshold = 0.01;    
+        // }
+    }
     
     if (b.sampleMirror == 1)
     {
@@ -89,29 +85,13 @@ void main()
         if (spotLightTheta > l.cutoff)
         {
             outputColor = 
-            b.ambient * texture(b_texAmbient, worldUV).rgb + 
-            b.diffuse * shadowThreshold * texture(b_texDiffuse, worldUV).rgb * l.color * l.power * cosTheta / (lightDistance * lightDistance) +
-            b.specular * shadowThreshold * texture(b_texSpecular, worldUV).rgb * l.color * l.power * pow(cosAlpha, 5) / (lightDistance * lightDistance) +
-            b.specularReflection * shadowThreshold * texture(skyboxTex, camReflecDirection).rgb + 
-            skyboxValue * texture(skyboxTex, skyboxUV).rgb;
+            b.ambient * texture(b_texAmbient, worldUV_Frag).rgb + 
+            b.diffuse * shadowThreshold * texture(b_texDiffuse, worldUV_Frag).rgb * l.color * l.power * cosTheta / (lightDistance * lightDistance) +
+            b.specular * shadowThreshold * texture(b_texSpecular, worldUV_Frag).rgb * l.color * l.power * pow(cosAlpha, 5) / (lightDistance * lightDistance);
         }
         else
         {
-            outputColor = b.ambient * texture(b_texAmbient, worldUV).rgb +
-                          skyboxValue * texture(skyboxTex, skyboxUV).rgb;
+            outputColor = b.ambient * texture(b_texAmbient, worldUV_Frag).rgb;
         }
-
-        // outputColor = 
-        //     b.ambient * texture(b_texAmbient, worldUV).rgb + 
-        //     b.diffuse * shadowThreshold * texture(b_texDiffuse, worldUV).rgb * l.color * l.power * cosTheta / (lightDistance * lightDistance) +
-        //     b.specular * shadowThreshold * texture(b_texSpecular, worldUV).rgb * l.color * l.power * pow(cosAlpha, 5) / (lightDistance * lightDistance) +
-        //     b.specularReflection * shadowThreshold * texture(skyboxTex, camReflecDirection).rgb + 
-        //     skyboxValue * texture(skyboxTex, skyboxUV).rgb;
-
-        // outputColor = shadowThreshold;
-
-        // outputColor = vec3(shadowPos.xy/shadowPos.w, 0.0);
-        // outputColor = vec3(0.0, 0.0, shadowPos.z/shadowPos.w);
-        // outputColor = texture(shadowMap, shadowPos.xy/shadowPos.w).rgb;
     }
 }

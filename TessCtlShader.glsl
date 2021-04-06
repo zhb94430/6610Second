@@ -1,25 +1,29 @@
 #version 410
 
-// Tess a quad in this case
-layout (vertices = 3) out;
+layout (vertices = 3) out; // Triangle
+// layout (vertices = 4) out; // Quad
 
-uniform float tessLevel = 10240.0;
+uniform float tessLevel = 1.0;
 
-in vec3 worldPos[];
-in vec3 worldNor[];
-in vec2 worldUV[];
+in vec3 modelPos_TessCtl[];
+in vec3 modelNor_TessCtl[];
+in vec2 modelUV_TessCtl[];
 
-out vec3 worldPos_TessEval[];
-out vec3 worldNor_TessEval[];
-out vec2 worldUV_TessEval[];
+// in vec3 worldPos[];
+// in vec3 worldNor[];
+// in vec2 worldUV[];
+
+out vec3 modelPos_TessEval[];
+out vec3 modelNor_TessEval[];
+out vec2 modelUV_TessEval[];
 
 void main()
 {
-	worldPos_TessEval[gl_InvocationID] = worldPos[gl_InvocationID];
-	worldNor_TessEval[gl_InvocationID] = worldNor[gl_InvocationID];
-	worldUV_TessEval[gl_InvocationID] = worldUV[gl_InvocationID];
+	modelPos_TessEval[gl_InvocationID] = modelPos_TessCtl[gl_InvocationID];
+	modelNor_TessEval[gl_InvocationID] = modelNor_TessCtl[gl_InvocationID];
+	modelUV_TessEval[gl_InvocationID] = modelUV_TessCtl[gl_InvocationID];
 
-	// Set the tesslation level of the quad
+	// Set the tesslation level of the triangle
 	gl_TessLevelOuter[0] = tessLevel;
 	gl_TessLevelOuter[1] = tessLevel;
 	gl_TessLevelOuter[2] = tessLevel;

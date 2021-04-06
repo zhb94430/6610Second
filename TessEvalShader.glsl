@@ -2,15 +2,18 @@
 
 layout(triangles, equal_spacing, ccw) in; 
 
-uniform mat4 VP;
+uniform mat4 MVP;
+uniform mat4 M;
+uniform mat4 shadowMVP;
 uniform sampler2D b_texDisplacement; 
-uniform float displacementScale = 4.0;
+uniform float displacementScale = 0.4;
 
-in vec3 worldPos_TessEval[];
-in vec3 worldNor_TessEval[];
-in vec2 worldUV_TessEval[];
+in vec3 modelPos_TessEval[];
+in vec3 modelNor_TessEval[];
+in vec2 modelUV_TessEval[];
 
 out vec3 worldPos_Frag;
+out vec4 shadowPos_Frag;
 out vec3 worldNor_Frag;
 out vec2 worldUV_Frag;
 
@@ -37,22 +40,26 @@ vec2 interpolateNewAttribute(vec2 v0, vec2 v1, vec2 v2)
 void main()
 {
 	// Calculate new attributes for fragment shader
-	worldPos_Frag = interpolateNewAttribute(worldPos_TessEval[0],
-											worldPos_TessEval[1],
-											worldPos_TessEval[2]);
+	vec3 modelPos_New = interpolateNewAttribute(modelPos_TessEval[0],
+			  								    modelPos_TessEval[1],
+										 	    modelPos_TessEval[2]);
 
-	worldNor_Frag = normalize(interpolateNewAttribute(
-											worldNor_TessEval[0],
-											worldNor_TessEval[1],
-											worldNor_TessEval[2]));
+	vec3 modelNor_New = normalize(interpolateNewAttribute(
+											modelNor_TessEval[0],
+											modelNor_TessEval[1],
+											modelNor_TessEval[2])); 
 
-	worldUV_Frag = interpolateNewAttribute(worldUV_TessEval[0],
-										   worldUV_TessEval[1],
-										   worldUV_TessEval[2]);
+	worldUV_Frag = interpolateNewAttribute(modelUV_TessEval[0],
+										   modelUV_TessEval[1],
+										   modelUV_TessEval[2]);
 
 	// Displace the generated vertex
 	float displacementValue = texture(b_texDisplacement, worldUV_Frag).x;
-	worldPos_Frag += displacementScale * displacementValue * worldNor_Frag;
+	modelPos_New += displacementScale * displacementValue * modelNor_New;
 
-	gl_Position = VP * vec4(worldPos_Frag, 1.0);
+	shadowPos_Frag = shadowMVP * vec4(modelPos_New, 1.0);
+	worldPos_Frag = (M * vec4(modelPos_New, 1.0)).xyz;
+	worldNor_Frag = normalize(transpose(inverse(M)) * vec4(modelNor_New, 1.0)).xyz;
+
+	gl_Position = MVP * vec4(modelPos_New, 1.0);
 }

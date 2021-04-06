@@ -3,32 +3,34 @@
 layout (triangles) in;
 layout (line_strip, max_vertices=4) out;
 
-uniform mat4 MVP;
-uniform vec3 cameraPos;
+uniform mat4 VP;
+
+// Compliance for the pipeline
+in vec3 worldPos_Frag[];
+in vec4 shadowPos_Frag[];
+in vec3 worldNor_Frag[];
+in vec2 worldUV_Frag[];
 
 void main()
 {
-	vec4 worldPos0 = MVP * gl_in[0].gl_Position;
-	vec4 worldPos1 = MVP * gl_in[1].gl_Position;
-	vec4 worldPos2 = MVP * gl_in[2].gl_Position;
-
-	vec4 cameraDirection0 = vec4(normalize(cameraPos - worldPos0.xyz), 0.0);
-	vec4 cameraDirection1 = vec4(normalize(cameraPos - worldPos1.xyz), 0.0);
-	vec4 cameraDirection2 = vec4(normalize(cameraPos - worldPos2.xyz), 0.0);
 
 	float offset = 0.01;
 
-	gl_Position = worldPos0 + offset*cameraDirection0;
-	// gl_Position = MVP * gl_in[0].gl_Position;
+	// gl_Position = VP * vec4(worldPos_Frag[0] + offset*worldNor_Frag[0], 1.0);
+	// gl_Position = VP * vec4(worldPos_Frag[0], 1.0);
+	gl_Position = gl_in[0].gl_Position + vec4(offset*worldNor_Frag[0], 0.0);
 	EmitVertex();
-	gl_Position = worldPos1 + offset*cameraDirection1;
-	// gl_Position = MVP * gl_in[1].gl_Position;
+	// gl_Position = VP * vec4(worldPos_Frag[1] + offset*worldNor_Frag[1], 1.0);
+	// gl_Position = VP * vec4(worldPos_Frag[1], 1.0);
+	gl_Position = gl_in[1].gl_Position + vec4(offset*worldNor_Frag[1], 0.0);
 	EmitVertex();
-	gl_Position = worldPos2 + offset*cameraDirection2;
-	// gl_Position = MVP * gl_in[2].gl_Position;
+	// gl_Position = VP * vec4(worldPos_Frag[2] + offset*worldNor_Frag[2], 1.0);
+	// gl_Position = VP * vec4(worldPos_Frag[2], 1.0);
+	gl_Position = gl_in[2].gl_Position + vec4(offset*worldNor_Frag[2], 0.0);
 	EmitVertex();
-	gl_Position = worldPos0 + offset*cameraDirection0;
-	// gl_Position = MVP * gl_in[0].gl_Position;
+	// gl_Position = VP * vec4(worldPos_Frag[0] + offset*worldNor_Frag[0], 1.0);
+	// gl_Position = VP * vec4(worldPos_Frag[0], 1.0);
+	gl_Position = gl_in[0].gl_Position + vec4(offset*worldNor_Frag[0], 0.0);
 	EmitVertex();
 	EndPrimitive();
 }

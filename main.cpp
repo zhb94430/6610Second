@@ -43,6 +43,9 @@ extern Camera firstCam;
 extern Camera secondCam;
 extern GLStates glStates;
 
+float tessLevel = 1.0;
+bool ENABLE_TRIANGULATION = false;
+
 // Scene Variables
 extern Light l;
 
@@ -68,6 +71,7 @@ int main(int argc, char* argv[])
 
 	glStates.generateEmptyTexture();
 	glShadowStates.generateEmptyTexture();
+	glStates_Triangulate.generateEmptyTexture();
 
 	// Setup scene
 	GLRenderBuffer mirrorBuffer(&glStates);
@@ -93,6 +97,8 @@ int main(int argc, char* argv[])
     }
 
     GLMesh quadMesh("./quad.obj", &glStates, cyMatrix4f::Scale(10), &mirrorBuffer);
+    GLMesh quadMeshTriangulate("./quad.obj", &glStates_Triangulate, cyMatrix4f::Scale(10), &mirrorBuffer);
+    GLMesh quadMeshShadow("./quad.obj", &glShadowStates, cyMatrix4f::Scale(10), &mirrorBuffer);
     GLMesh lightMesh("./light/light.obj", &glStates, cyMatrix4f::Translation(l.pos));
     l.mesh = &lightMesh;
     l.update();
@@ -103,26 +109,11 @@ int main(int argc, char* argv[])
     // mirrorScene.sky = &sky;
     // mirrorScene.meshList.push_back(mainMesh);
 
-    // Scene shadowScene;
-    // shadowScene.l = &l;
-    // shadowScene.cam = &lightCam;
-    // shadowScene.sky = NULL;
-    // shadowScene.meshList.push_back(&mainMesh);
-
-    // Scene firstScene;
-    // firstScene.l = &l;
-    // firstScene.cam = &mainCam;
-    // firstScene.sky = &sky;
-    // firstScene.meshList.push_back(mainMesh);
-
-    // Scene secondScene;
-    // secondScene.l = &l;
-    // secondScene.cam = &mainCam;
-    // secondScene.sky = &sky;
-    // // secondScene.sky = NULL;
-    // secondScene.meshList.push_back(&quadMesh);
-    // secondScene.meshList.push_back(&mainMesh);
-    // secondScene.meshList.push_back(&lightMesh);
+    Scene shadowScene;
+    shadowScene.l = &l;
+    shadowScene.cam = &lightCam;
+    shadowScene.sky = NULL;
+    shadowScene.meshList.push_back(&quadMeshShadow);
 
     Scene P8Scene;
     P8Scene.l = &l;
@@ -135,7 +126,7 @@ int main(int argc, char* argv[])
     P8Triangulate.l = &l;
     P8Triangulate.cam = &mainCam;
     P8Triangulate.sky = NULL;
-    P8Triangulate.meshList.push_back(&quadMesh);
+    P8Triangulate.meshList.push_back(&quadMeshTriangulate);
 
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.3, 0.3, 0.3, 1.0);
@@ -148,27 +139,16 @@ int main(int argc, char* argv[])
     	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		// glClearColor(0.3, 0.3, 0.3, 1.0);  
 		glClearColor(0.0, 0.0, 0.0, 1.0);   	
-
-    	// auto current = std::chrono::steady_clock::now();
-    	// auto timeDiff = std::chrono::duration_cast<std::chrono::milliseconds>(current - begin).count();
-    	// float timeDiffF = timeDiff * 0.001;
-
-    	// DrawSceneToBuffer(&firstScene, &firstBuffer, &glStates);
-    	// DrawScene(&secondScene, &glStates);
-
-    	// DrawScene(&firstScene, &glStates);
-
-    	// DrawSceneToBuffer(&mirrorScene, &mirrorBuffer, &glStates);
-
-		// DrawSceneToDepthBuffer(&shadowScene, &shadowBuffer, &glShadowStates);
-		// DrawSceneToBuffer(&shadowScene, &mirrorBuffer, &glShadowStates);
-
-    	// DrawScene(&secondScene, &glStates, &mirrorBuffer);
-    	// DrawScene(&secondScene, &glStates);
+    
+		DrawSceneToBuffer(&shadowScene, &mirrorBuffer, &glShadowStates);
     	
-		DrawScene(&P8Scene, &glStates);
-		// DrawScene(&P8Scene, &glStates_Triangulate);
-		DrawScene(&P8Triangulate, &glStates_Triangulate);
+		DrawScene(&P8Scene, &glStates, &mirrorBuffer);
+
+		if (ENABLE_TRIANGULATION)
+		{
+			DrawScene(&P8Triangulate, &glStates_Triangulate);
+		}
+		
 
 	    glfwSwapBuffers(window);
 	    glfwPollEvents();

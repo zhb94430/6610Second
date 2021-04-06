@@ -29,6 +29,8 @@ extern Camera mainCam;
 extern Camera mirrorCam;
 extern Camera lightCam;
 extern Light l;
+extern float tessLevel;
+extern bool ENABLE_TRIANGULATION;
 
 GLFWwindow* window;
 
@@ -44,6 +46,9 @@ double yposPrev = 0.0;
 double distSensitivity = 0.001;
 double camAngleSensitivity = 0.001;
 double lightAngleSensitivity = 0.001;
+float tessControlSensitivity = 1.0;
+float tessMax = 1000.0;
+float tessMin = 1.0;
 
 static void error_callback(int error, const char* description)
 {
@@ -60,6 +65,26 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 			case GLFW_KEY_ESCAPE:
 				glfwSetWindowShouldClose(window, GLFW_TRUE);
                 break;
+
+            case GLFW_KEY_SPACE:
+                ENABLE_TRIANGULATION = !ENABLE_TRIANGULATION;
+                break;
+
+            case GLFW_KEY_LEFT:
+                tessLevel -= tessControlSensitivity;
+                if (tessLevel < tessMin)
+                {
+                    tessLevel = tessMin;
+                }
+                break;
+
+            case GLFW_KEY_RIGHT:
+                tessLevel += tessControlSensitivity;
+                if (tessLevel > tessMax)
+                {
+                    tessLevel = tessMax;
+                }
+                break;    
 
             case GLFW_KEY_F6:
                 loadProgram(&glStates);

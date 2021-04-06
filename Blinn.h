@@ -49,6 +49,7 @@ struct Blinn
 	    texDiffuse = 0;
 	    texSpecular = 0;
 	    texNormal = 0;
+	    texDisplacement = 0;
     }
 
     // Helper function that loads the texture for the material
