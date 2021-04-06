@@ -10,5 +10,5 @@ Kd 0.9 0.9 0.9
 Ks 0.9 0.9 0.9
 # map_Ka R2T
 # map_Kd R2T
-map_Ns teapot_normal.png
-map_disp teapot_disp.png
+# map_Ns teapot_normal.png
+# map_disp teapot_disp.png

@@ -52,6 +52,8 @@ extern Light l;
 // std::string modelPath = "./yoda/yoda.obj";
 std::string modelPath = "./teapot.obj";
 // std::string modelPath = "./sphere.obj";
+std::string normalMapPath = "";
+std::string displacementMapPath = "";
 
 int main(int argc, char* argv[])
 {
@@ -61,7 +63,14 @@ int main(int argc, char* argv[])
 
     if (argc == 2)
     {
-        modelPath = argv[1];
+        // modelPath = argv[1];
+        normalMapPath = argv[1];
+    }
+
+    else if(argc == 3)
+    {
+    	normalMapPath = argv[1];
+    	displacementMapPath = argv[2];
     }
 
 	loadShadowProgram(&glShadowStates);
@@ -141,12 +150,14 @@ int main(int argc, char* argv[])
 		glClearColor(0.0, 0.0, 0.0, 1.0);   	
     
 		DrawSceneToBuffer(&shadowScene, &mirrorBuffer, &glShadowStates);
+		// DrawScene(&shadowScene, &glShadowStates);
     	
 		DrawScene(&P8Scene, &glStates, &mirrorBuffer);
 
 		if (ENABLE_TRIANGULATION)
 		{
 			DrawScene(&P8Triangulate, &glStates_Triangulate);
+			// DrawScene(&shadowScene, &glStates_Triangulate);
 		}
 		
 

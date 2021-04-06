@@ -19,6 +19,9 @@
 #include "GLStates.h"
 #include "GLRenderBuffer.h"
 
+extern std::string normalMapPath;
+extern std::string displacementMapPath;
+
 class GLMesh
 {
 public:
@@ -268,10 +271,20 @@ void GLMesh::Load(std::string filePath, GLRenderBuffer* renderBuffer)
 	        	currentMaterial.LoadTexture(processedPath + "/" + std::string(currentTriMtl.map_Ns.data),
 	            							&currentMaterial.texNormal);
 	        }
+	        else if (normalMapPath.size() > 0)
+	        {
+	        	currentMaterial.LoadTexture(normalMapPath,
+	            							&currentMaterial.texNormal);
+	        }
 
-	        if (currentTriMtl.map_disp)
+	        if (currentTriMtl.map_disp && normalMapPath.size() == 0)
 	        {
 	        	currentMaterial.LoadTexture(processedPath + "/" + std::string(currentTriMtl.map_disp.data),
+	            							&currentMaterial.texDisplacement);
+	        }
+	        else if (displacementMapPath.size() > 0)
+	        {
+	        	currentMaterial.LoadTexture(displacementMapPath,
 	            							&currentMaterial.texDisplacement);
 	        }
 

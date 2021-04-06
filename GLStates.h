@@ -107,10 +107,14 @@ struct GLStates
 
 	void queryShadowVariableLocations()
 	{
-		MVP = glGetUniformLocation(program, "MVP");
-		modelPos = glGetAttribLocation(program, "modelPos");
+		// MVP = glGetUniformLocation(program, "MVP");
+		// modelPos = glGetAttribLocation(program, "modelPos");
+
+		// queryTessVariableLocations();
 
 		queryTessVariableLocations();
+		// queryTriangulateVariableLocations();
+		queryVariableLocations();
 	}
 
 	void queryTriangulateVariableLocations()
